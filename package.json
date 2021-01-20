@@ -1,0 +1,28 @@
+{
+  "name": "data-versioning",
+  "version": "1.0.0",
+  "description": "Repository for evaluating the different approaches to data versioning",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pier4all/data-versioning.git"
+  },
+  "keywords": [
+    "json",
+    "node",
+    "mongodb"
+  ],
+  "author": "Lucia de Espona Pernas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pier4all/data-versioning/issues"
+  },
+  "homepage": "https://github.com/pier4all/data-versioning#readme",
+  "dependencies": {
+    "mongoose": "^5.11.13",
+    "mongoose-vermongo": "0.0.4"
+  }
+}
