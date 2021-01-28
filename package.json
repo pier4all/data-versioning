@@ -23,6 +23,7 @@
   "homepage": "https://github.com/pier4all/data-versioning#readme",
   "dependencies": {
     "bluebird": "^3.7.2",
+    "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
     "mongoose": "^5.11.13",
     "mongoose-vermongo": "0.0.4"
