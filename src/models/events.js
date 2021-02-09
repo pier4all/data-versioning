@@ -1,5 +1,4 @@
 // imports
-var chalk = require('chalk');
 var mongoose = require('mongoose');
 var vermongo = require('mongoose-vermongo');
 mongoose.Promise = require('bluebird');
