@@ -3,18 +3,25 @@
 // imports
 require('dotenv').config()
 
-var eventsDAO = require('./src/dao/eventsDAO.js');
+var db = require('./src/database')
+var eventController = require('./src/controllers/event.controller')
 
 // read credentials
 const mongodb_uri = process.env.DB_URI
 
-// eventsDAO
-var eventsDAO = require('./src/dao/eventsDAO.js');
-const eventDAO = new eventsDAO.EventsDAO();
+var database = new db.Database(mongodb_uri)
 
-const afterUpdate = (event) => {
-  eventDAO.end(() => { console.log("** finished update ** " + event.title); }
-)};
+database.connect( (err, ok) => { 
+  if (err) {
+    console.error("Cannot connect to DB, exiting...")
+    endConnection()
+  } else {
+
+    let data = {title: "test A", status: "PENDING", tags: ["mongodb", "versioning", "refactoring"], created: new Date()} 
+    eventController.createEvent(data, afterCreate);
+    
+  }
+})
 
 const afterCreate = (event) => {
   
@@ -22,13 +29,40 @@ const afterCreate = (event) => {
   event.lastModified = new Date(); 
 
   console.log("** finished creation ** " + event.title)  
-  eventDAO.updateEvent(event, afterUpdate);
+  eventController.updateEvent(event, endConnection);
   
 };
 
-eventDAO.init(mongodb_uri, () => {
-  eventDAO.createEvent({title: "test A", status: "PENDING", tags: ["mongodb", "versioning"], created: new Date()}, afterCreate);
-});
+const endConnection = () => {
+  database.end(() => { console.log("** finished ** " ); }
+)};
+
+// var eventsDAO = require('./src/dao/eventsDAO.js');
+
+// // read credentials
+// const mongodb_uri = process.env.DB_URI
+
+// // eventsDAO
+// var eventsDAO = require('./src/models/eventsDAO.js');
+// const eventDAO = new eventsDAO.EventsDAO();
+
+// const afterUpdate = (event) => {
+//   eventDAO.end(() => { console.log("** finished update ** " + event.title); }
+// )};
+
+// const afterCreate = (event) => {
+  
+//   event.status = "DELIVERY"; 
+//   event.lastModified = new Date(); 
+
+//   console.log("** finished creation ** " + event.title)  
+//   eventDAO.updateEvent(event, afterUpdate);
+  
+// };
+
+// eventDAO.init(mongodb_uri, () => {
+//   eventDAO.createEvent({title: "test A", status: "PENDING", tags: ["mongodb", "versioning"], created: new Date()}, afterCreate);
+// });
 
 
 
