@@ -12,11 +12,13 @@ exports.create = (req, res) => {
   }
 
   // Create an Event
+  let now = new Date()
   const event = new Event({
     title: req.body.title,
     status: req.body.status,
     tags: req.body.tags,
-    created: req.body.created ? req.body.created : new Date()
+    created: req.body.created ? req.body.created : now,
+    modified: req.body.modified 
   });
 
   // Save Event in the database

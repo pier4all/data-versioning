@@ -11,7 +11,7 @@ let eventsSchema = new Schema({
   status : { type : String, required : true },
   tags : [String],
  
-  lastModified : Date,
+  modified : Date,
   created : Date,
   deleted : Date
 });

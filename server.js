@@ -10,7 +10,7 @@ var eventController = require('./src/controllers/events.controller')
 
 // read credentials
 const mongodb_uri = process.env.DB_URI
-const port = process.env.PORT || 3210
+const port = process.env.PORT || 3000
 
 var database = new db.Database(mongodb_uri)
 
