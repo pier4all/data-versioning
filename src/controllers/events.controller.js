@@ -37,12 +37,53 @@ exports.create = (req, res) => {
 
 }
 
-// exports.update = (event, callback) => {
-//     console.log("event.controller.update: called update new model")
-//     event.save()
-//         .then((event) => { callback(event); })
-//         .catch((err) => { console.log(err); process.exit(); })
-// }
+exports.update = (req, res) => {
+  console.log(chalk.cyan("event.controller.update: called update"))
+
+  // Validate request
+  if (!req.body) {
+    return res.status(400).send({ message: "Data to update can not be empty!" });
+  }
+
+  // Get the id
+  const id = req.params.id;
+  console.log(chalk.blue(id))
+
+  // Update Event in the database
+  Event.findById(id)
+  .then(event => {
+  if (!event)
+      res.status(404).send({ message: "Not found Event with id " + id });
+  else {
+
+    for (var key in req.body) {
+        if (req.body.hasOwnProperty(key)) {
+            event[key] = req.body[key]
+        }
+    }
+    event.modified = req.body.modified ? req.body.modified :  new Date()
+
+    event.save()    
+    .then(data => {
+        res.status(200).send(data);
+        // alternative status 204 with no data
+      })
+      .catch(err => {
+      console.error(err);
+        res.status(500).send({
+          message: "Error occurred while updating the Event with id=" + id 
+        });
+      });
+    }
+  })
+  .catch(err => {
+      console.error(err);
+      res
+          .status(500)
+          .send({ message: "Error retrieving Event with id=" + id });
+  });
+
+}
 
 exports.findOne = (req, res) => {
     console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
@@ -62,6 +103,60 @@ exports.findOne = (req, res) => {
                 .send({ message: "Error retrieving Event with id=" + id });
         });
 };
+
+exports.delete = (req, res) => {
+    console.log(chalk.cyan("event.controller.delete: called delete"))
+  
+     // Get the id
+    const id = req.params.id;
+    console.log(chalk.blue(id))
+  
+    // Delete Event in the database
+    Event.findById(id)
+    .then(event => {
+    if (!event)
+        res.status(404).send({ message: "Not found Event with id " + id });
+    else {
+        event.remove()    
+        .then(data => {
+            res.status(200).send(data);
+            // alternative status 204 with no data
+        })
+        .catch(err => {
+        console.error(err);
+            res.status(500).send({
+            message: "Error occurred while deleting the Event with id=" + id 
+            });
+        });
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        res
+            .status(500)
+            .send({ message: "Error retrieving Event with id=" + id });
+    });
+  
+  }
+  
+  exports.findOne = (req, res) => {
+      console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
+  
+      const id = req.params.id;
+      
+      Event.findById(id)
+          .then(data => {
+          if (!data)
+              res.status(404).send({ message: "Not found Event with id " + id });
+          else res.send(data);
+          })
+          .catch(err => {
+              console.error(err);
+              res
+                  .status(500)
+                  .send({ message: "Error retrieving Event with id=" + id });
+          });
+  };
 
 exports.findAll = (req, res) => {
 

@@ -16,9 +16,19 @@ module.exports = fastify => {
     return events.findOne(request, reply)
    })
 
-    // Create a new Event
+   // Create a new Event
   fastify.post("/events/create", async (request, reply) => {
     return events.create(request, reply)
    })
+
+  // Update an Event
+  fastify.put("/events/update/:id", async (request, reply) => {
+    return events.update(request, reply)
+  })
+
+  // Delete an Event
+  fastify.delete("/events/delete/:id", async (request, reply) => {
+    return events.delete(request, reply)
+  })
 
 };
