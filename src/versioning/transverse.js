@@ -1,8 +1,10 @@
 var chalk = require('chalk');
-
 "use strict";
+
+// Constants
 const VERSION = "_version";
 const ID = "_id";
+
 function cloneSchema(schema, mongoose) {
     let clonedSchema = new mongoose.Schema();
     schema.eachPath(function (path, type) {
@@ -21,6 +23,7 @@ function cloneSchema(schema, mongoose) {
     });
     return clonedSchema;
 }
+
 module.exports = function (schema, options) {
     if (typeof (options) == 'string') {
         options = {
@@ -31,43 +34,45 @@ module.exports = function (schema, options) {
     options.collection = options.collection || 'versions';
     options.logError = options.logError || false;
     options.mongoose = options.mongoose || require('mongoose');
+    let mongoose = options.mongoose;
+
     // Make sure there's no _version path
     if (schema.path(VERSION)) {
         throw Error("Schema can't have a path called \"_version\"");
     }
-    let vermongoSchema = cloneSchema(schema, options.mongoose);
-    let mongoose = options.mongoose;
-    // Copy schema options
+
+    // create the versioned schema
+    let versionedSchema = cloneSchema(schema, mongoose);
+
+    // Copy schema options in the versioned schema
     for (var key in options) {
         if (options.hasOwnProperty(key)) {
-            vermongoSchema.set(key, options[key]);
+            versionedSchema.set(key, options[key]);
         }
     }
     // Add Custom fields
     schema.add({
         _version: { type: Number, required: true, default: 0, select: true }
     });
-    vermongoSchema.add({
+    versionedSchema.add({
         _id: mongoose.Schema.Types.Mixed,
         _version: { type: Number, required: true, default: 0, select: true }
     });
+
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
-    vermongoSchema.set("versionKey", false);
+    versionedSchema.set("versionKey", false);
+    
     // Add reference to model to original schema
-    schema.statics.VersionedModel = mongoose.model(options.collection, vermongoSchema);
+    schema.statics.VersionedModel = mongoose.model(options.collection, versionedSchema);
 
     schema.pre('save', async function (next) {
 
         if (this.isNew) {
-            // console.log('[new]');
+            console.log('[new]');
             this[VERSION] = 1;
             return next();
         }
-        //const session = await mongoose.startSession();
-        //session.startTransaction();
-        const session = this._session
-        delete this._session
 
         let baseVersion = this[VERSION];
         // load the base version
@@ -86,44 +91,39 @@ module.exports = function (schema, options) {
             throw (err);
         }
         let clone = base;
+
         // Build Vermongo historical ID
         clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
+
         // Increment version number
         this[VERSION] = this[VERSION] + 1;
-        await new schema.statics.VersionedModel(clone)
-            .save({ session: session });
 
-        const priority = this.priority
-
-        console.log(chalk.magenta('[saved version] waiting... '), priority);
-        //throw new Error("TESTING")
-        await new Promise(resolve => setTimeout(resolve, priority * 1000));
-        console.log(chalk.magenta('*** CONTINUE **** '), priority);
+        // Save versioned document
+        await new schema.statics.VersionedModel(clone).save();
 
         next();
-
-        // await session.commitTransaction();
-        // session.endSession();
-        // console.log('[Commited transaction]');
         return null;
     });
 
-    // schema.post('save', function() {
-    //     console.log(chalk.magentaBright.bold('[post save]'), 'OK')
-    //     //throw new Error("Breaking the post")
-    // });
+    schema.post('save', async function(error, doc, next) {
+        // clean up the versioned document in case it exists
+        console.log(chalk.redBright.bold('[post save ERROR]'), doc.priority)
+        try {
+            let base = await this.collection.findOne({ [ID]: doc[ID] })
+            let versionedId = { [ID]: doc[ID], [VERSION]: base[VERSION] }
+            let versionedDoc = await schema.statics.VersionedModel.findById(versionedId)
 
-    // schema.post('save', function(error, doc, next) {
-    //     console.log(chalk.magentaBright.bold('[post save]'), doc.priority)
-    //     if (error) {
-    //         console.error(error)
-    //     }
-    //     if (error.name === 'MongoError' && error.code === 11000) {
-    //       next(new Error('There was a duplicate key error'));
-    //     } else {
-    //       next(error);
-    //     }
-    // });
+            if (versionedDoc) {
+                console.log(chalk.redBright('[post save ERROR]: Deleting versioned document'), versionedId)
+                versionedDoc.remove()    
+            } else {
+                console.log(chalk.red.italic('[post save ERROR]: No versioned document'), versionedId)
+            }
+        } catch(remove_error)  {
+            console.error("Error occurred while deleting the versioned document with id=" + versionedId, remove_error.message);
+        }
+        next(error);
+    });
 
     schema.pre('remove', function (next) {
         var clone = this.toObject();
@@ -140,7 +140,7 @@ module.exports = function (schema, options) {
                 .save();
         })
             .then(() => {
-            // console.log('[removed]');
+            console.log('[removed]');
             next();
             return null;
         })
@@ -152,6 +152,7 @@ module.exports = function (schema, options) {
             return null;
         });
     });
+
     // TODO
     schema.pre('update', function (next) { });
     schema.pre('findOneAndUpdate', function (next) { });

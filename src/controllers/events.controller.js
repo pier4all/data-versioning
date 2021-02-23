@@ -1,7 +1,6 @@
 
 const Event = require("../models/events");
 var chalk = require('chalk');
-mongoose = require('mongoose')
 
 exports.create = (req, res) => {
     console.log(chalk.cyan("event.controller.create: called create"))
@@ -39,12 +38,8 @@ exports.create = (req, res) => {
 }
 
 exports.update = async (req, res) => {
-  let session;
 
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
-
     console.log(chalk.cyan("event.controller.update: called update"))
 
     // Validate request
@@ -70,30 +65,19 @@ exports.update = async (req, res) => {
       }
       event.modified = req.body.modified ? req.body.modified :  new Date()
 
-      console.log(chalk.cyanBright(' -- Start transaction -- '));
-
-      event._session = session
-
       event.save()   
         .then(async (data) => {
-            await session.commitTransaction();
-            session.endSession();
-            console.log(chalk.cyanBright(' -- Finish transaction -- '));
             res.status(200).send(data);
             // alternative status 204 with no data
-          }).catch(err => {
-            session.endSession();
-            console.error(err);
-            console.log(chalk.cyanBright(' -- ABORT transaction -- '));
+          }).catch(error => {
+            console.error(error.message);
             res.status(500).send({
               message: "Error occurred while updating (save) the Event with id=" + id 
             });
           });
     }
-  } catch(err) {
-    console.error(err);
-    session.endSession();
-    console.log(chalk.cyanBright(' -- ABORT transaction -- '));
+  } catch(error) {
+    console.error(error.message);
     res.status(500).send({
       message: "Error occurred while updating the Event with id=" + id 
     });
