@@ -22,7 +22,7 @@ module.exports = fastify => {
    })
 
   // Update an Event
-  fastify.put("/events/update/:id", async (request, reply) => {
+  fastify.patch("/events/update/:id", async (request, reply) => {
     return events.update(request, reply)
   })
 

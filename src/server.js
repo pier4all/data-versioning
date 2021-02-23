@@ -5,8 +5,8 @@
 const fastify = require('fastify')({ logger: true })
 require('dotenv').config()
 
-var db = require('./src/database')
-var eventController = require('./src/controllers/events.controller')
+var db = require('./db/database')
+var eventController = require('./controllers/events.controller')
 
 // read credentials
 const mongodb_uri = process.env.DB_URI
@@ -30,8 +30,6 @@ const endConnection = () => {
 // content parser
 fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function (req, body, done) {
   try {
-    console.log("** PARSER **")
-    console.log(body)
     var json = JSON.parse(body)
     done(null, json)
   } catch (err) {
@@ -41,7 +39,7 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function
 })
 
 // define routes
-require("./src/routes/events.routes")(fastify);
+require("./routes/events.routes")(fastify);
 
 // Run the server!
 const start = async () => {

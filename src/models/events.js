@@ -1,6 +1,6 @@
 // imports
 var mongoose = require('mongoose');
-var vermongo = require('mongoose-vermongo');
+var transverse = require('../versioning/transverse');
 mongoose.Promise = require('bluebird');
 
 // schema definition
@@ -10,13 +10,13 @@ let eventsSchema = new Schema({
   title : { type : String, required : true},
   status : { type : String, required : true },
   tags : [String],
- 
+  priority: { type: Number },
   modified : Date,
   created : Date,
   deleted : Date
 });
 
-eventsSchema.plugin(vermongo, "events.vermongo");
+eventsSchema.plugin(transverse, "events.versioning");
 
 module.exports = mongoose.model('event', eventsSchema);
 

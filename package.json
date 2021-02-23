@@ -2,9 +2,10 @@
   "name": "data-versioning",
   "version": "1.0.0",
   "description": "Repository for evaluating the different approaches to data versioning",
-  "main": "app.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,6 @@
     "dotenv": "^8.2.0",
     "fastify": "^3.11.0",
     "mongoose": "^5.11.13",
-    "mongoose-vermongo": "0.0.4"
+    "nodemon": "^2.0.7"
   }
 }

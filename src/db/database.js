@@ -13,7 +13,7 @@ class Database {
 
     connect(callback) {
         console.log(chalk.yellow("Database.connect: DB connecting (" + mongodb_uri + ") ... "));
-        mongoose.connect(mongodb_uri, {useUnifiedTopology: true, useNewUrlParser: true}).then(() => {
+        mongoose.connect(mongodb_uri, {useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false}).then(() => {
                 console.log(chalk.green.bold("Database.connect: DB connected "));
                 if (callback){
                     callback(undefined, "OK");
