@@ -4,6 +4,7 @@ var chalk = require('chalk');
 // Constants
 const VERSION = "_version";
 const ID = "_id";
+const VALIDITY = "_validity";
 
 function cloneSchema(schema, mongoose) {
     let clonedSchema = new mongoose.Schema();
@@ -50,13 +51,22 @@ module.exports = function (schema, options) {
             versionedSchema.set(key, options[key]);
         }
     }
+    
     // Add Custom fields
     schema.add({
-        _version: { type: Number, required: true, default: 0, select: true }
+        _version: { type: Number, required: true, default: 0, select: true },
+        _validity: { 
+            start: { type: Date, required: true, default: Date.now },
+            end: { type: Date, required: false }
+        }
     });
     versionedSchema.add({
         _id: mongoose.Schema.Types.Mixed,
-        _version: { type: Number, required: true, default: 0, select: true }
+        _version: { type: Number, required: true, default: 0, select: true },
+        _validity: { 
+            start: { type: Date, required: true, default: Date.now },
+            end: { type: Date, required: false }
+        }
     });
 
     // Turn off internal versioning, we don't need this since we version on everything
@@ -95,6 +105,16 @@ module.exports = function (schema, options) {
         // Build Vermongo historical ID
         clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
 
+        // Set validity to end now for versioned and to start now for current
+        const now = Date.now()
+        
+        clone[VALIDITY] = {
+            "start": this[VALIDITY]["start"],
+            "end": now
+        }
+
+        this[VALIDITY] = { "start": now }
+
         // Increment version number
         this[VERSION] = this[VERSION] + 1;
 
@@ -106,6 +126,7 @@ module.exports = function (schema, options) {
     });
 
     schema.post('save', async function(error, doc, next) {
+
         // clean up the versioned document in case it exists
         console.log(chalk.redBright.bold('[post save ERROR]'), doc.priority)
         try {

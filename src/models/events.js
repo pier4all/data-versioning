@@ -7,19 +7,12 @@ mongoose.Promise = require('bluebird');
 var Schema = mongoose.Schema;
 
 let eventsSchema = new Schema({
-  title : { type : String, required : true},
+  title : { type : String, required : true },
   status : { type : String, required : true },
-  tags : [String],
-  priority: { type: Number },
-  modified : Date,
-  created : Date,
-  deleted : Date
+  tags : [ String ],
+  priority: { type: Number }
 });
 
 eventsSchema.plugin(transverse, "events.versioning");
 
 module.exports = mongoose.model('event', eventsSchema);
-
-
-
-

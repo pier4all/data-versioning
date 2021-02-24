@@ -12,14 +12,7 @@ exports.create = (req, res) => {
   }
 
   // Create an Event
-  let now = new Date()
-  const event = new Event({
-    title: req.body.title,
-    status: req.body.status,
-    tags: req.body.tags,
-    created: req.body.created ? req.body.created : now,
-    modified: req.body.modified 
-  });
+  const event = new Event(req.body);
 
   // Save Event in the database
   event
@@ -57,13 +50,12 @@ exports.update = async (req, res) => {
     if (!event)
         res.status(404).send({ message: "Not found Event with id " + id });
     else {
-
+      // TODO: review this
       for (var key in req.body) {
           if (req.body.hasOwnProperty(key)) {
               event[key] = req.body[key]
           }
       }
-      event.modified = req.body.modified ? req.body.modified :  new Date()
 
       event.save()   
         .then(async (data) => {
