@@ -13,6 +13,7 @@ let eventsSchema = new Schema({
   priority: { type: Number }
 });
 
+// TODO set indexes manually after adding option { autoIndex: false }
 eventsSchema.plugin(transverse, "events.versioning");
 
 module.exports = mongoose.model('event', eventsSchema);

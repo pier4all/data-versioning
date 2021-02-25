@@ -15,7 +15,9 @@ function cloneSchema(schema, mongoose) {
         // TODO: find a better way to clone schema
         let clonedPath = {};
         clonedPath[path] = type.options;
+        // shadowed props are not unique
         clonedPath[path].unique = false;
+
         // shadowed props are not all required
         if (path !== VERSION) {
             clonedPath[path].required = false;
@@ -52,22 +54,26 @@ module.exports = function (schema, options) {
         }
     }
     
+    // Define Custom fields
+    let validityField = {}
+    validityField[VALIDITY] = { 
+        start: { type: Date, required: true, default: Date.now },
+        end: { type: Date, required: false }
+    }
+
+    let versionField = {}
+    versionField[VERSION] = { type: Number, required: true, default: 0, select: true }
+
+    let versionedIdField = {}
+    versionedIdField[ID] = mongoose.Schema.Types.Mixed
+    versionedIdField[VERSION] = versionField[VERSION]
+
     // Add Custom fields
-    schema.add({
-        _version: { type: Number, required: true, default: 0, select: true },
-        _validity: { 
-            start: { type: Date, required: true, default: Date.now },
-            end: { type: Date, required: false }
-        }
-    });
-    versionedSchema.add({
-        _id: mongoose.Schema.Types.Mixed,
-        _version: { type: Number, required: true, default: 0, select: true },
-        _validity: { 
-            start: { type: Date, required: true, default: Date.now },
-            end: { type: Date, required: false }
-        }
-    });
+    schema.add(validityField)
+    schema.add(versionField);
+
+    versionedSchema.add(versionedIdField);
+    versionedSchema.add(validityField)
 
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
@@ -75,6 +81,30 @@ module.exports = function (schema, options) {
     
     // Add reference to model to original schema
     schema.statics.VersionedModel = mongoose.model(options.collection, versionedSchema);
+
+    //add special find
+    schema.statics.findVersion = async (id, date, model) => {
+        console.log(chalk.keyword('orange')('Find with versions'), id, date );
+
+        // 1. check if in current collection is valid
+        // TODO make proper query filtering by dates instead ifs
+        // TODO find out why 'this.findById' does not work
+        let current = await model.findById(id)
+        if (current) {
+            if (current[VALIDITY].start<=date){
+                if (current[VALIDITY].end){
+                    if (current[VALIDITY].end>=date){ return current }
+                } else { return current }
+            }
+        }
+
+        // 2. if not, check versioned collection
+        //TODO do the real implementation
+        var ObjectId = require('mongoose').Types.ObjectId; 
+        let versionedModel = schema.statics.VersionedModel
+        let versions = await versionedModel.find({"_id._id": ObjectId(id)})
+        return versions[0]
+    };
 
     schema.pre('save', async function (next) {
 
@@ -178,4 +208,5 @@ module.exports = function (schema, options) {
     schema.pre('update', function (next) { });
     schema.pre('findOneAndUpdate', function (next) { });
     schema.pre('findOneAndRemove', function (next) { });
+
 };

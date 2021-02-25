@@ -45,7 +45,7 @@ exports.update = async (req, res) => {
     console.log(chalk.blue(id))
 
     // Update Event in the database
-    let event = await Event.findById(id)
+    let event = await Event.findById(id, options={'versioned': true})
 
     if (!event)
         res.status(404).send({ message: "Not found Event with id " + id });
@@ -81,7 +81,7 @@ exports.findOne = (req, res) => {
 
     const id = req.params.id;
     
-    Event.findById(id)
+    Event.findById(id, options={'versioned': true})
         .then(data => {
         if (!data)
             res.status(404).send({ message: "Not found Event with id " + id });
@@ -130,6 +130,40 @@ exports.delete = (req, res) => {
   
   }
   
+  exports.findVersion = (req, res) => {
+    console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
+
+    const id = req.params.id;
+    let date;
+    if(req.query.date) {
+      date = new Date(req.query.date)
+    }
+    else {
+      date = new Date()
+    }
+
+    if (!isValidDate(date)) {
+      console.error("Bad date provided");
+      res
+          .status(400)
+          .send({ message: "Ivalid date provided " + req.query.date });
+      return;    
+    }
+
+    Event.findVersion(id, date, Event)
+      .then(data => {
+        if (!data)
+            res.status(404).send({ message: "Not found Event with id " + id });
+        else res.send(data);
+        })
+        .catch(err => {
+            console.error(err);
+            res
+                .status(500)
+                .send({ message: "Error retrieving Event with id=" + id });
+        });
+};
+
   exports.findOne = (req, res) => {
       console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
   
@@ -168,4 +202,9 @@ exports.findAll = (req, res) => {
                 .send({ message: "Error retrieving Events" });
         });
 };
+
+
+function isValidDate(d) {
+  return d instanceof Date && !isNaN(d);
+}
       

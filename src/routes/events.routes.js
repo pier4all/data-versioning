@@ -13,7 +13,7 @@ module.exports = fastify => {
 
     // Find by ID
    fastify.get('/events/:id', async (request, reply) => {
-    return events.findOne(request, reply)
+    return events.findVersion(request, reply)
    })
 
    // Create a new Event
