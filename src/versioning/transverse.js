@@ -136,10 +136,10 @@ module.exports = function (schema, options) {
         clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
 
         // Set validity to end now for versioned and to start now for current
-        const now = Date.now()
+        const now = new Date()
         
         clone[VALIDITY] = {
-            "start": this[VALIDITY]["start"],
+            "start": base[VALIDITY]["start"],
             "end": now
         }
 
