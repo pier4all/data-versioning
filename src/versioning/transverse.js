@@ -86,24 +86,28 @@ module.exports = function (schema, options) {
     schema.statics.findVersion = async (id, date, model) => {
         console.log(chalk.keyword('orange')('Find with versions'), id, date );
 
+        var ObjectId = require('mongoose').Types.ObjectId; 
+
         // 1. check if in current collection is valid
-        // TODO make proper query filtering by dates instead ifs
         // TODO find out why 'this.findById' does not work
-        let current = await model.findById(id)
+        let current = await model.findOne({
+                "_id": ObjectId(id),
+                "$or": [{"_validity.end":{ $gt: date }}, {"_validity.end": null}], 
+                "_validity.start":{ $lte: date }
+        })
         if (current) {
-            if (current[VALIDITY].start<=date){
-                if (current[VALIDITY].end){
-                    if (current[VALIDITY].end>=date){ return current }
-                } else { return current }
-            }
+            { return current }
         }
 
         // 2. if not, check versioned collection
-        //TODO do the real implementation
-        var ObjectId = require('mongoose').Types.ObjectId; 
+        // TODO: deleted documents
         let versionedModel = schema.statics.VersionedModel
-        let versions = await versionedModel.find({"_id._id": ObjectId(id)})
-        return versions[0]
+        let version = await versionedModel.findOne({
+            "_id._id": ObjectId(id),
+            "_validity.end":{ $gt: date }, 
+            "_validity.start":{ $lte: date }
+        })
+        return version
     };
 
     schema.pre('save', async function (next) {
