@@ -55,6 +55,7 @@ module.exports = function (schema, options) {
     }
     
     // Define Custom fields
+    // TODO: validate end should be later than start
     let validityField = {}
     validityField[VALIDITY] = { 
         start: { type: Date, required: true, default: Date.now },
@@ -141,13 +142,22 @@ module.exports = function (schema, options) {
 
         // Set validity to end now for versioned and to start now for current
         const now = new Date()
+        const start = base[VALIDITY]["start"]
+        const end = base[VALIDITY]["end"]
         
         clone[VALIDITY] = {
-            "start": base[VALIDITY]["start"],
+            "start": start,
             "end": now
         }
 
         this[VALIDITY] = { "start": now }
+        //TODO: decide how to handle this
+        if (end) {
+            if (end.getTime() < now.getTime()) {
+                throw new Error("End date cannot be in the past")
+             }
+            this[VALIDITY]["end"] = end
+        }
 
         // Increment version number
         this[VERSION] = this[VERSION] + 1;
