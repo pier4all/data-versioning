@@ -27,6 +27,37 @@ function cloneSchema(schema, mongoose) {
     return clonedSchema;
 }
 
+async function rollbackDeletion(model, schema, doc) {
+    var docId = doc[ID] || undefined
+    try {
+        let base = await model.collection.findOne({ [ID]: doc[ID] })
+
+        if (base) {
+            let versionedId = { [ID]: doc[ID], [VERSION]: base[VERSION] }
+            let versionedDoc = await schema.statics.VersionedModel.findById(versionedId)
+
+            if (versionedDoc) {
+                console.log(chalk.keyword('orange')('[post delete]: Deleting versioned document'), versionedId)
+                versionedDoc.remove()    
+            } else {
+                console.log(chalk.keyword('orange')('[post delete WARNING]: No versioned document'), versionedId)
+            }
+
+            let deletionId = { [ID]: doc[ID], [VERSION]: base[VERSION]+1 }
+            let deletionDoc = await schema.statics.VersionedModel.findById(deletionId)
+
+            if (deletionDoc) {
+                console.log(chalk.keyword('orange')('[post delete ERROR]: Deleting versioned document'), deletionId)
+                deletionDoc.remove()    
+            } else {
+                console.log(chalk.keyword('orange')('[post delete ERROR]: No versioned document'), deletionId)
+            }
+        }
+    } catch(remove_error)  {
+        console.error(chalk.red("Error occurred while deleting the versioned document with id=" + docId, remove_error.message));
+    }
+}
+
 module.exports = function (schema, options) {
     if (typeof (options) == 'string') {
         options = {
@@ -62,6 +93,12 @@ module.exports = function (schema, options) {
         end: { type: Date, required: false }
     }
 
+    let versionedValidityField = {}
+    versionedValidityField[VALIDITY] = { 
+        start: { type: Date, required: false },
+        end: { type: Date, required: false}
+    }
+
     let versionField = {}
     versionField[VERSION] = { type: Number, required: true, default: 0, select: true }
 
@@ -74,7 +111,7 @@ module.exports = function (schema, options) {
     schema.add(versionField);
 
     versionedSchema.add(versionedIdField);
-    versionedSchema.add(validityField)
+    versionedSchema.add(versionedValidityField)
 
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
@@ -91,10 +128,12 @@ module.exports = function (schema, options) {
 
         // 1. check if in current collection is valid
         // TODO find out why 'this.findById' does not work
+        const validity_end = VALIDITY + ".end"
+        const validity_start = VALIDITY + ".start"
         let current = await model.findOne({
                 "_id": ObjectId(id),
-                "$or": [{"_validity.end":{ $gt: date }}, {"_validity.end": null}], 
-                "_validity.start":{ $lte: date }
+                "$or": [{ validity_end:{ $gt: date }}, { validity_end: null }], 
+                validity_start:{ $lte: date }
         })
         if (current) {
             { return current }
@@ -103,11 +142,12 @@ module.exports = function (schema, options) {
         // 2. if not, check versioned collection
         // TODO: deleted documents
         let versionedModel = schema.statics.VersionedModel
-        let version = await versionedModel.findOne({
-            "_id._id": ObjectId(id),
-            "_validity.end":{ $gt: date }, 
-            "_validity.start":{ $lte: date }
-        })
+        let query = {}
+        query[ID + "." + ID] = ObjectId(id)
+        query[validity_end] = { $gt: date }
+        query[validity_start] = { $lte: date }
+        
+        let version = await versionedModel.findOne(query)
         return version
     };
 
@@ -190,32 +230,64 @@ module.exports = function (schema, options) {
         next(error);
     });
 
-    schema.pre('remove', function (next) {
-        var clone = this.toObject();
-        clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
-        new schema.statics.VersionedModel(clone)
-            .save()
-            .then(() => {
+    schema.pre('remove', async function (next) {
+        try {
+            // TODO take care of rollback (post)
+            // save current version clone in shadow collection 
+            let deletionPayload = this.delete_info
+            delete this.delete_info
+
+            var clone = this.toObject();
+            clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
+
+            const now = new Date()
+            const start = this[VALIDITY]["start"]
+            clone[VALIDITY] = {
+                "start": start,
+                "end": now
+            }
+            await new schema.statics.VersionedModel(clone).save()
+    
+            // save 'deletion' version in the shadow collection
+                
             this[VERSION]++;
             let deletedClone = {
                 [ID]: { [ID]: this[ID], [VERSION]: this[VERSION] },
                 [VERSION]: -1
             };
-            return new schema.statics.VersionedModel(deletedClone)
-                .save();
-        })
-            .then(() => {
+            delete deletedClone[VALIDITY]
+
+            if (deletionPayload) {
+                for (var key in deletionPayload) {
+                    if (deletionPayload.hasOwnProperty(key)) {
+                        deletedClone[key] = deletionPayload[key];
+                    }
+                }
+            }
+
+            await new schema.statics.VersionedModel(deletedClone).save();
+
             console.log('[removed]');
+
             next();
             return null;
-        })
-            .catch((err) => {
+        
+        } catch (err) {
             if (options.logError) {
                 console.log(err);
             }
+            await rollbackDeletion(this, schema, this.toObject())
             next(err);
             return null;
-        });
+        }
+    });
+
+    schema.post('delete', async function(error, doc, next) {
+
+        // clean up the versioned document in case it exists
+        console.log(chalk.keyword('orange').bold('[post delete ERROR]'), doc.priority)
+        await rollbackDeletion(this, schema, doc)
+        next(error);
     });
 
     // TODO

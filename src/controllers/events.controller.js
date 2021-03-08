@@ -108,6 +108,7 @@ exports.delete = (req, res) => {
     if (!event)
         res.status(404).send({ message: "Not found Event with id " + id });
     else {
+        event["delete_info"] = req.body
         event.remove()    
         .then(data => {
             res.status(200).send(data);
