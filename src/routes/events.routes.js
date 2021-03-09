@@ -11,8 +11,13 @@ module.exports = fastify => {
         return events.findAll(request, reply)
     })
 
-    // Find by ID
+    // Find valid version by ID (current or optionally on a given date)
    fastify.get('/events/:id', async (request, reply) => {
+    return events.findValidVersion(request, reply)
+   })
+
+   // Find by ID and version number
+   fastify.get('/events/:id/:version', async (request, reply) => {
     return events.findVersion(request, reply)
    })
 

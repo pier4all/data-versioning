@@ -1,9 +1,10 @@
 
 const Event = require("../models/events");
 var chalk = require('chalk');
+mongoose = require('mongoose')
 
-exports.create = (req, res) => {
-    console.log(chalk.cyan("event.controller.create: called create"))
+exports.create = async (req, res) => {
+  console.log(chalk.cyan("event.controller.create: called create"))
 
   // Validate request
   if (!req.body.title) {
@@ -11,26 +12,27 @@ exports.create = (req, res) => {
     return;
   }
 
-  // Create an Event
-  const event = new Event(req.body);
+  try {
+    // Create an Event
+    const event = new Event(req.body);
 
-  // Save Event in the database
-  event
-    .save(event)
-    .then(data => {
-      res.status(201).send(data);
-    })
-    .catch(err => {
-    console.error(err);
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Event."
-      });
+    // Save Event in the database
+    await event.save()
+    res.status(201).send(event);
+
+  } catch (error) {
+
+    console.error(error);
+    res.status(500).send({
+      message: err.message || "Some error occurred while creating the Event."
     });
-
+  };
 }
 
 exports.update = async (req, res) => {
+
+  let session
+  let id
 
   try {
     console.log(chalk.cyan("event.controller.update: called update"))
@@ -41,101 +43,110 @@ exports.update = async (req, res) => {
     }
 
     // Get the id
-    const id = req.params.id;
-    console.log(chalk.blue(id))
-
+    id = req.params.id;
+    
     // Update Event in the database
-    let event = await Event.findById(id, options={'versioned': true})
+    let event = await Event.findById(id)
 
-    if (!event)
-        res.status(404).send({ message: "Not found Event with id " + id });
+    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
     else {
-      // TODO: review this
+      // TODO: review this with Jean-Claude regarding the versioning fields
       for (var key in req.body) {
           if (req.body.hasOwnProperty(key)) {
               event[key] = req.body[key]
           }
       }
 
-      event.save()   
-        .then(async (data) => {
-            res.status(200).send(data);
-            // alternative status 204 with no data
-          }).catch(error => {
-            console.error(error.message);
-            res.status(500).send({
-              message: "Error occurred while updating (save) the Event with id=" + id 
-            });
-          });
+      // start transaction
+      session = await mongoose.startSession();
+      session.startTransaction();
+
+      // store _session in document
+      event._session = session
+
+      await event.save({session})   
+
+      // commit transaction
+      await session.commitTransaction();
+      session.endSession();
+      console.log(chalk.greenBright("-- commit transaction --"))
+
+      // return result
+      res.status(200).send(event);
+      // TODO consider alternative status 204 with no data
     }
   } catch(error) {
+    if (session) {
+      session.endSession();
+      console.log(chalk.redBright("-- ABORT transaction --"))
+    }
     console.error(error.message);
     res.status(500).send({
-      message: "Error occurred while updating the Event with id=" + id 
+      message: "Error occurred while updating the Event with id=" + id,
+      exception:  error.message
     });
   }
 }
 
-exports.findOne = (req, res) => {
-    console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
+exports.delete = async (req, res) => {
+  console.log(chalk.cyan("event.controller.delete: called delete"))
 
-    const id = req.params.id;
-    
-    Event.findById(id, options={'versioned': true})
-        .then(data => {
-        if (!data)
-            res.status(404).send({ message: "Not found Event with id " + id });
-        else res.send(data);
-        })
-        .catch(err => {
-            console.error(err);
-            res
-                .status(500)
-                .send({ message: "Error retrieving Event with id=" + id });
-        });
-};
+  let session
+  let id
 
-exports.delete = (req, res) => {
-    console.log(chalk.cyan("event.controller.delete: called delete"))
-  
+  try {
      // Get the id
-    const id = req.params.id;
+    id = req.params.id;
     console.log(chalk.blue(id))
   
     // Delete Event in the database
-    Event.findById(id)
-    .then(event => {
+    let event = await Event.findById(id)
     if (!event)
         res.status(404).send({ message: "Not found Event with id " + id });
     else {
-        event["delete_info"] = req.body
-        event.remove()    
-        .then(data => {
-            res.status(200).send(data);
-            // alternative status 204 with no data
-        })
-        .catch(err => {
-        console.error(err);
-            res.status(500).send({
-            message: "Error occurred while deleting the Event with id=" + id 
-            });
-        });
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        res
-            .status(500)
-            .send({ message: "Error retrieving Event with id=" + id });
-    });
-  
-  }
-  
-  exports.findVersion = (req, res) => {
-    console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
+      // set the deltion info
+      event._deletion = req.body
 
-    const id = req.params.id;
-    let date;
+      // start transaction
+      session = await mongoose.startSession();
+      session.startTransaction();
+
+      // store _session in document
+      event._session = session
+
+      let data = await event.remove({session})    
+      res.status(200).send(data);
+      // alternative status 204 with no data
+
+      // commit transaction
+      await session.commitTransaction();
+      session.endSession();
+      console.log(chalk.greenBright("-- commit transaction --"))
+    
+    }
+  } catch(error) {
+    if (session) {
+      session.endSession();
+      console.log(chalk.redBright("-- ABORT transaction --"))
+    }
+    console.error(error);
+    res
+        .status(500)
+        .send({ message: "Error deleting Event with id=" + id });
+  }
+}
+  
+exports.findValidVersion = async(req, res) => {
+  // TODO: maybe accept a date range too
+  console.log(chalk.cyan("event.controller.queryEvent: called findValidVersion"))
+
+  let id
+  let date
+  try {
+    
+    // Get request parameters
+    id = req.params.id;
+    
     if(req.query.date) {
       date = new Date(req.query.date)
     }
@@ -151,61 +162,78 @@ exports.delete = (req, res) => {
       return;    
     }
 
-    Event.findVersion(id, date, Event)
-      .then(data => {
-        if (!data)
-            res.status(404).send({ message: "Not found Event with id " + id });
-        else res.send(data);
-        })
-        .catch(err => {
-            console.error(err);
-            res
-                .status(500)
-                .send({ message: "Error retrieving Event with id=" + id });
-        });
+    let event = await Event.findValidVersion(id, date, Event)
+    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
+    else res.send(event);
+
+  } catch(error) {
+    console.error(err);
+    res
+        .status(500)
+        .send({ message: "Error retrieving Event with id=" + id });
+  };
 };
 
-  exports.findOne = (req, res) => {
-      console.log(chalk.cyan("event.controller.queryEvent: called findOne"))
-  
-      const id = req.params.id;
-      
-      Event.findById(id)
-          .then(data => {
-          if (!data)
-              res.status(404).send({ message: "Not found Event with id " + id });
-          else res.send(data);
-          })
-          .catch(err => {
-              console.error(err);
-              res
-                  .status(500)
-                  .send({ message: "Error retrieving Event with id=" + id });
-          });
+exports.findVersion = async(req, res) => {
+  console.log(chalk.cyan("event.controller.queryEvent: called findVersion"))
+
+  let id
+  let version
+
+  try {
+    id = req.params.id;
+    version = req.params.version;
+
+    if (!isValidVersion(version)) {
+      console.error("Bad version provided");
+      res
+          .status(400)
+          .send({ message: "Ivalid version provided " + version });
+      return;    
+    }
+
+    let event = await Event.findVersion(id, parseInt(version), Event)
+    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
+    else res.send(event);
+
+  } catch(error) {
+    console.error(err);
+    res
+        .status(500)
+        .send({ message: "Error retrieving Event with id=" + id });
   };
+};
 
-exports.findAll = (req, res) => {
-
+exports.findAll = async (req, res) => {
+  
+  try {
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
     
     console.log(chalk.cyan("event.controller.queryEvent: called findAll, limit=" + limit + ", offset=" + offset))
 
-    Event.find({}, null, {sort: {_id: 1}}).skip(offset).limit(limit).then(data => {
-            if (!data)
-                res.status(404).send({ message: "Not found Events" });
-            else res.send(data);
-        })
-        .catch(err => {
-            console.error(err);
-            res
-                .status(500)
-                .send({ message: "Error retrieving Events" });
-        });
-};
+    let events = await Event.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
+    if (!events) res.status(404).send({ message: "Not found Events" });
+    else res.send(events);
+        
+  } catch (error) {
+    console.error(error);
+    res
+        .status(500)
+        .send({ message: "Error retrieving Events" });
+  };
+};
 
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
-      
+
+function isValidVersion(v) {
+  if (typeof v != "string") return false // we only process strings!  
+  if (isNaN(v)) return false // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+  if (isNaN(parseInt(v))) return false// ...and ensure strings of whitespace fail
+  if (parseInt(v) < 0) return false
+  return true
+}
+
