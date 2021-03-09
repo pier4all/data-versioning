@@ -24,7 +24,8 @@ exports.create = async (req, res) => {
 
     console.error(error);
     res.status(500).send({
-      message: err.message || "Some error occurred while creating the Event."
+      message: "Some error occurred while creating the Event.",
+      exception: error.message
     });
   };
 }
@@ -105,7 +106,7 @@ exports.delete = async (req, res) => {
         res.status(404).send({ message: "Not found Event with id " + id });
     else {
       // set the deltion info
-      event._deletion = req.body
+      event._deletion = req.body || {}
 
       // start transaction
       session = await mongoose.startSession();
@@ -167,10 +168,11 @@ exports.findValidVersion = async(req, res) => {
     else res.send(event);
 
   } catch(error) {
-    console.error(err);
+    console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Event with id=" + id });
+        .send({ message: "Error retrieving Event with id=" + id,
+                exception: error.message });
   };
 };
 
@@ -197,10 +199,11 @@ exports.findVersion = async(req, res) => {
     else res.send(event);
 
   } catch(error) {
-    console.error(err);
+    console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Event with id=" + id });
+        .send({ message: "Error retrieving Event with id=" + id,
+                exception: error.message });
   };
 };
 
@@ -233,7 +236,7 @@ function isValidVersion(v) {
   if (typeof v != "string") return false // we only process strings!  
   if (isNaN(v)) return false // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
   if (isNaN(parseInt(v))) return false// ...and ensure strings of whitespace fail
-  if (parseInt(v) < 0) return false
+  if (parseInt(v) < 1) return false
   return true
 }
 

@@ -5,6 +5,10 @@ var chalk = require('chalk');
 const VERSION = "_version";
 const ID = "_id";
 const VALIDITY = "_validity";
+const EDITOR = "_editor";
+const DELETER = "_deleter";
+const DEFAULT_EDITOR = "default";
+const DELETION = "_deletion";
 
 function cloneSchema(schema, mongoose) {
     let clonedSchema = new mongoose.Schema();
@@ -39,9 +43,18 @@ module.exports = function (schema, options) {
     options.mongoose = options.mongoose || require('mongoose');
     let mongoose = options.mongoose;
 
-    // Make sure there's no _version path
+    // Make sure there's no reserved paths
     if (schema.path(VERSION)) {
-        throw Error("Schema can't have a path called \"_version\"");
+        throw Error("Schema can't have a path called \"" + VERSION + "\"");
+    }
+    if (schema.path(VALIDITY)) {
+        throw Error("Schema can't have a path called \"" + VALIDITY + "\"");
+    }
+    if (schema.path(EDITOR)) {
+        throw Error("Schema can't have a path called \"" + EDITOR + "\"");
+    }
+    if (schema.path(DELETER)) {
+        throw Error("Schema can't have a path called \"" + DELETER + "\"");
     }
 
     // create the versioned schema
@@ -76,12 +89,22 @@ module.exports = function (schema, options) {
     versionedIdField[ID] = mongoose.Schema.Types.Mixed
     versionedIdField[VERSION] = versionField[VERSION]
 
+    let editorField = {}
+    editorField[EDITOR] = { type: String, required: true, default: DEFAULT_EDITOR }
+
+    let deleterField = {}
+    deleterField[DELETER] = { type: String, required: false}
+
     // Add Custom fields
     schema.add(validityField)
     schema.add(versionField);
+    schema.add(editorField);
+    schema.add(deleterField);
 
     versionedSchema.add(versionedIdField);
-    versionedSchema.add(versionedValidityField)
+    versionedSchema.add(versionedValidityField);
+    versionedSchema.add(editorField);
+    versionedSchema.add(deleterField);
 
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
@@ -211,8 +234,8 @@ module.exports = function (schema, options) {
         delete this._session
 
         // save current version clone in shadow collection 
-        let deletionPayload = this.delete_info
-        delete this.delete_info
+        let delete_info = this[DELETION]
+        delete this[DELETION]
 
         var clone = this.toObject();
         clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
@@ -223,25 +246,9 @@ module.exports = function (schema, options) {
             "start": start,
             "end": now
         }
+        clone[DELETER] = delete_info[DELETER] || "deleter";
+
         await new schema.statics.VersionedModel(clone).save(session)
-
-        // save 'deletion mark' version in the shadow collection
-        this[VERSION]++;
-        let deletedClone = {
-            [ID]: { [ID]: this[ID], [VERSION]: this[VERSION] },
-            [VERSION]: -1
-        };
-        delete deletedClone[VALIDITY]
-
-        if (deletionPayload) {
-            for (var key in deletionPayload) {
-                if (deletionPayload.hasOwnProperty(key)) {
-                    deletedClone[key] = deletionPayload[key];
-                }
-            }
-        }
-
-        await new schema.statics.VersionedModel(deletedClone).save(session);
 
         console.log('[removed]');
 

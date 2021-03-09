@@ -29,5 +29,9 @@
     "fastify": "^3.11.0",
     "mongoose": "^5.11.13",
     "nodemon": "^2.0.7"
+  },
+  "devDependencies": {
+    "faucet": "0.0.1",
+    "tape": "^5.2.2"
   }
 }
