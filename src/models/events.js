@@ -1,6 +1,6 @@
 // imports
 var mongoose = require('mongoose');
-var transverse = require('../versioning/transverse');
+var transverse = require('../versioning/versioning');
 mongoose.Promise = require('bluebird');
 
 // schema definition

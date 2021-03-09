@@ -1,35 +1,7 @@
 var chalk = require('chalk');
+var util = require("./util")
+var c = require("./constants")
 "use strict";
-
-// Constants
-const VERSION = "_version";
-const ID = "_id";
-const VALIDITY = "_validity";
-const EDITOR = "_editor";
-const DELETER = "_deleter";
-const DEFAULT_EDITOR = "default";
-const DELETION = "_deletion";
-
-function cloneSchema(schema, mongoose) {
-    let clonedSchema = new mongoose.Schema();
-    schema.eachPath(function (path, type) {
-        if (path === ID) {
-            return;
-        }
-        // TODO: find a better way to clone schema
-        let clonedPath = {};
-        clonedPath[path] = type.options;
-        // shadowed props are not unique
-        clonedPath[path].unique = false;
-
-        // shadowed props are not all required
-        if (path !== VERSION) {
-            clonedPath[path].required = false;
-        }
-        clonedSchema.add(clonedPath);
-    });
-    return clonedSchema;
-}
 
 module.exports = function (schema, options) {
     if (typeof (options) == 'string') {
@@ -44,21 +16,21 @@ module.exports = function (schema, options) {
     let mongoose = options.mongoose;
 
     // Make sure there's no reserved paths
-    if (schema.path(VERSION)) {
-        throw Error("Schema can't have a path called \"" + VERSION + "\"");
+    if (schema.path(c.VERSION)) {
+        throw Error("Schema can't have a path called \"" + c.VERSION + "\"");
     }
-    if (schema.path(VALIDITY)) {
-        throw Error("Schema can't have a path called \"" + VALIDITY + "\"");
+    if (schema.path(c.VALIDITY)) {
+        throw Error("Schema can't have a path called \"" + c.VALIDITY + "\"");
     }
-    if (schema.path(EDITOR)) {
-        throw Error("Schema can't have a path called \"" + EDITOR + "\"");
+    if (schema.path(c.EDITOR)) {
+        throw Error("Schema can't have a path called \"" + c.EDITOR + "\"");
     }
-    if (schema.path(DELETER)) {
-        throw Error("Schema can't have a path called \"" + DELETER + "\"");
+    if (schema.path(c.DELETER)) {
+        throw Error("Schema can't have a path called \"" + c.DELETER + "\"");
     }
 
     // create the versioned schema
-    let versionedSchema = cloneSchema(schema, mongoose);
+    let versionedSchema = util.cloneSchema(schema, mongoose);
 
     // Copy schema options in the versioned schema
     for (var key in options) {
@@ -70,30 +42,30 @@ module.exports = function (schema, options) {
     // Define Custom fields
     // TODO: validate end should be later than start
     let validityField = {}
-    validityField[VALIDITY] = { 
+    validityField[c.VALIDITY] = { 
         start: { type: Date, required: true, default: Date.now },
         end: { type: Date, required: false }
     }
 
     // TODO: maybe set default to now and required to true if deletion implementation changes
     let versionedValidityField = {}
-    versionedValidityField[VALIDITY] = { 
+    versionedValidityField[c.VALIDITY] = { 
         start: { type: Date, required: false },
         end: { type: Date, required: false}
     }
 
     let versionField = {}
-    versionField[VERSION] = { type: Number, required: true, default: 0, select: true }
+    versionField[c.VERSION] = { type: Number, required: true, default: 0, select: true }
 
     let versionedIdField = {}
-    versionedIdField[ID] = mongoose.Schema.Types.Mixed
-    versionedIdField[VERSION] = versionField[VERSION]
+    versionedIdField[c.ID] = mongoose.Schema.Types.Mixed
+    versionedIdField[c.VERSION] = versionField[c.VERSION]
 
     let editorField = {}
-    editorField[EDITOR] = { type: String, required: true, default: DEFAULT_EDITOR }
+    editorField[c.EDITOR] = { type: String, required: true, default: c.DEFAULT_EDITOR }
 
     let deleterField = {}
-    deleterField[DELETER] = { type: String, required: false}
+    deleterField[c.DELETER] = { type: String, required: false}
 
     // Add Custom fields
     schema.add(validityField)
@@ -121,8 +93,8 @@ module.exports = function (schema, options) {
 
         // 1. check if in current collection is valid
         // TODO find out why 'this.findById' does not work
-        const validity_end = VALIDITY + ".end"
-        const validity_start = VALIDITY + ".start"
+        const validity_end = c.VALIDITY + ".end"
+        const validity_start = c.VALIDITY + ".start"
 
         let query = { "_id": ObjectId(id)}
         query[validity_start] = { $lte: date }
@@ -136,7 +108,7 @@ module.exports = function (schema, options) {
         // TODO: consider deleted documents if they have a validity
         let versionedModel = schema.statics.VersionedModel
         query = {}
-        query[ID + "." + ID] = ObjectId(id)
+        query[c.ID + "." + c.ID] = ObjectId(id)
         query[validity_start] = { $lte: date }
         query[validity_end] = { $gt: date }
         
@@ -153,8 +125,8 @@ module.exports = function (schema, options) {
         // 1. check if version is the main collection
         // TODO find out why 'this.findById' does not work
         let query = {}
-        query[ID] = ObjectId(id)
-        query[VERSION] = version
+        query[c.ID] = ObjectId(id)
+        query[c.VERSION] = version
 
         let current = await model.findOne(query)
         if (current) {
@@ -166,8 +138,8 @@ module.exports = function (schema, options) {
         // we could check in two version fields
         let versionedModel = schema.statics.VersionedModel
         query = {}
-        query[ID + "." + ID] = ObjectId(id)
-        query[VERSION] = version
+        query[c.ID + "." + c.ID] = ObjectId(id)
+        query[c.VERSION] = version
         
         let document = await versionedModel.findOne(query)
         return document
@@ -177,7 +149,7 @@ module.exports = function (schema, options) {
 
         if (this.isNew) {
             console.log('[new]');
-            this[VERSION] = 1;
+            this[c.VERSION] = 1;
             return next();
         }
 
@@ -185,10 +157,10 @@ module.exports = function (schema, options) {
         const session = {session: this._session}
         delete this._session
 
-        let baseVersion = this[VERSION];
+        let baseVersion = this[c.VERSION];
         // load the base version
         let base = await this.collection
-            .findOne({ [ID]: this[ID] })
+            .findOne({ [c.ID]: this[c.ID] })
             .then((foundBase) => {
             if (foundBase === null) {
                 let err = new Error('document to update not found in collection');
@@ -196,7 +168,7 @@ module.exports = function (schema, options) {
             }
             return foundBase;});
 
-        let bV = base[VERSION];
+        let bV = base[c.VERSION];
         if (baseVersion !== bV) {
             let err = new Error('modified and base versions do not match');
             throw (err);
@@ -204,21 +176,21 @@ module.exports = function (schema, options) {
         let clone = base;
 
         // Build Vermongo historical ID
-        clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
+        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
 
         // Set validity to end now for versioned and to start now for current
         const now = new Date()
-        const start = base[VALIDITY]["start"]
+        const start = base[c.VALIDITY]["start"]
         
-        clone[VALIDITY] = {
+        clone[c.VALIDITY] = {
             "start": start,
             "end": now
         }
 
-        this[VALIDITY] = { "start": now }
+        this[c.VALIDITY] = { "start": now }
 
         // Increment version number
-        this[VERSION] = this[VERSION] + 1;
+        this[c.VERSION] = this[c.VERSION] + 1;
 
         // Save versioned document
         await new schema.statics.VersionedModel(clone).save(session);
@@ -235,18 +207,18 @@ module.exports = function (schema, options) {
 
         // save current version clone in shadow collection 
         let delete_info = this[DELETION]
-        delete this[DELETION]
+        delete this[c.DELETION]
 
         var clone = this.toObject();
-        clone[ID] = { [ID]: this[ID], [VERSION]: this[VERSION] };
+        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
 
         const now = new Date()
-        const start = this[VALIDITY]["start"]
-        clone[VALIDITY] = {
+        const start = this[c.VALIDITY]["start"]
+        clone[c.VALIDITY] = {
             "start": start,
             "end": now
         }
-        clone[DELETER] = delete_info[DELETER] || "deleter";
+        clone[c.DELETER] = delete_info[c.DELETER] || "deleter";
 
         await new schema.statics.VersionedModel(clone).save(session)
 
@@ -256,7 +228,7 @@ module.exports = function (schema, options) {
         return null;
     });
 
-    // TODO
+    // TODO?
     schema.pre('update', function (next) { });
     schema.pre('findOneAndUpdate', function (next) { });
     schema.pre('findOneAndRemove', function (next) { });
