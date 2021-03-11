@@ -1,30 +1,25 @@
 
-const Event = require("../models/events");
+const Customer = require("../models/customer");
+const util = require('../versioning/util')
 var chalk = require('chalk');
 mongoose = require('mongoose')
 
 exports.create = async (req, res) => {
-  console.log(chalk.cyan("event.controller.create: called create"))
-
-  // Validate request
-  if (!req.body.title) {
-    res.status(400).send({ message: "Content can not be empty!" });
-    return;
-  }
+  console.log(chalk.cyan("customer.controller.create: called create"))
 
   try {
-    // Create an Event
-    const event = new Event(req.body);
+    // Create an Customer
+    const customer = new Customer(req.body);
 
-    // Save Event in the database
-    await event.save()
-    res.status(201).send(event);
+    // Save Customer in the database
+    await customer.save()
+    res.status(201).send(customer);
 
   } catch (error) {
 
     console.error(error);
     res.status(500).send({
-      message: "Some error occurred while creating the Event.",
+      message: "Some error occurred while creating the Customer.",
       exception: error.message
     });
   };
@@ -36,7 +31,7 @@ exports.update = async (req, res) => {
   let id
 
   try {
-    console.log(chalk.cyan("event.controller.update: called update"))
+    console.log(chalk.cyan("customer.controller.update: called update"))
 
     // Validate request
     if (!req.body) {
@@ -46,15 +41,15 @@ exports.update = async (req, res) => {
     // Get the id
     id = req.params.id;
     
-    // Update Event in the database
-    let event = await Event.findById(id)
+    // Update Customer in the database
+    let customer = await Customer.findById(id)
 
-    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
+    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
     else {
       // TODO: review this with Jean-Claude regarding the versioning fields
       for (var key in req.body) {
           if (req.body.hasOwnProperty(key)) {
-              event[key] = req.body[key]
+              customer[key] = req.body[key]
           }
       }
 
@@ -63,9 +58,9 @@ exports.update = async (req, res) => {
       session.startTransaction();
 
       // store _session in document
-      event._session = session
+      customer._session = session
 
-      await event.save({session})   
+      await customer.save({session})   
 
       // commit transaction
       await session.commitTransaction();
@@ -73,7 +68,7 @@ exports.update = async (req, res) => {
       console.log(chalk.greenBright("-- commit transaction --"))
 
       // return result
-      res.status(200).send(event);
+      res.status(200).send(customer);
       // TODO consider alternative status 204 with no data
     }
   } catch(error) {
@@ -83,14 +78,14 @@ exports.update = async (req, res) => {
     }
     console.error(error.message);
     res.status(500).send({
-      message: "Error occurred while updating the Event with id=" + id,
+      message: "Error occurred while updating the Customer with id=" + id,
       exception:  error.message
     });
   }
 }
 
 exports.delete = async (req, res) => {
-  console.log(chalk.cyan("event.controller.delete: called delete"))
+  console.log(chalk.cyan("customer.controller.delete: called delete"))
 
   let session
   let id
@@ -100,22 +95,22 @@ exports.delete = async (req, res) => {
     id = req.params.id;
     console.log(chalk.blue(id))
   
-    // Delete Event in the database
-    let event = await Event.findById(id)
-    if (!event)
-        res.status(404).send({ message: "Not found Event with id " + id });
+    // Delete Customer in the database
+    let customer = await Customer.findById(id)
+    if (!customer)
+        res.status(404).send({ message: "Not found Customer with id " + id });
     else {
       // set the deltion info
-      event._deletion = req.body || {}
+      customer._deletion = req.body || {}
 
       // start transaction
       session = await mongoose.startSession();
       session.startTransaction();
 
       // store _session in document
-      event._session = session
+      customer._session = session
 
-      let data = await event.remove({session})    
+      let data = await customer.remove({session})    
       res.status(200).send(data);
       // alternative status 204 with no data
 
@@ -133,13 +128,13 @@ exports.delete = async (req, res) => {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error deleting Event with id=" + id });
+        .send({ message: "Error deleting Customer with id=" + id });
   }
 }
   
 exports.findValidVersion = async(req, res) => {
   // TODO: maybe accept a date range too
-  console.log(chalk.cyan("event.controller.queryEvent: called findValidVersion"))
+  console.log(chalk.cyan("customer.controller.queryCustomer: called findValidVersion"))
 
   let id
   let date
@@ -163,21 +158,21 @@ exports.findValidVersion = async(req, res) => {
       return;    
     }
 
-    let event = await Event.findValidVersion(id, date, Event)
-    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
-    else res.send(event);
+    let customer = await Customer.findValidVersion(id, date, Customer)
+    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
+    else res.send(customer);
 
   } catch(error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Event with id=" + id,
+        .send({ message: "Error retrieving Customer with id=" + id,
                 exception: error.message });
   };
 };
 
 exports.findVersion = async(req, res) => {
-  console.log(chalk.cyan("event.controller.queryEvent: called findVersion"))
+  console.log(chalk.cyan("customer.controller.queryCustomer: called findVersion"))
 
   let id
   let version
@@ -186,7 +181,7 @@ exports.findVersion = async(req, res) => {
     id = req.params.id;
     version = req.params.version;
 
-    if (!isValidVersion(version)) {
+    if (!util.isValidVersion(version)) {
       console.error("Bad version provided");
       res
           .status(400)
@@ -194,15 +189,15 @@ exports.findVersion = async(req, res) => {
       return;    
     }
 
-    let event = await Event.findVersion(id, parseInt(version), Event)
-    if (!event) res.status(404).send({ message: "Not found Event with id " + id });
-    else res.send(event);
+    let customer = await Customer.findVersion(id, parseInt(version), Customer)
+    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
+    else res.send(customer);
 
   } catch(error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Event with id=" + id,
+        .send({ message: "Error retrieving Customer with id=" + id,
                 exception: error.message });
   };
 };
@@ -213,18 +208,18 @@ exports.findAll = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
     
-    console.log(chalk.cyan("event.controller.queryEvent: called findAll, limit=" + limit + ", offset=" + offset))
+    console.log(chalk.cyan("customer.controller.queryCustomer: called findAll, limit=" + limit + ", offset=" + offset))
 
-    let events = await Event.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
+    let customers = await Customer.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
-    if (!events) res.status(404).send({ message: "Not found Events" });
-    else res.send(events);
+    if (!customers) res.status(404).send({ message: "Not found Customers" });
+    else res.send(customers);
         
   } catch (error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Events" });
+        .send({ message: "Error retrieving Customers" });
   };
 };
 
@@ -232,11 +227,4 @@ function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
 
-exports.isValidVersion = (v) => {
-  if (typeof v != "string") return false // we only process strings!  
-  if (isNaN(v)) return false // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-  if (isNaN(parseInt(v))) return false// ...and ensure strings of whitespace fail
-  if (parseInt(v) < 1) return false
-  return true
-}
 

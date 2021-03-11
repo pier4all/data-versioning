@@ -6,7 +6,6 @@ const fastify = require('fastify')({ logger: true })
 require('dotenv').config()
 
 var db = require('./db/database')
-var eventController = require('./controllers/events.controller')
 
 // read credentials
 const mongodb_uri = process.env.DB_URI
@@ -39,7 +38,7 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function
 })
 
 // define routes
-require("./routes/events.routes")(fastify);
+require("./routes/customer.routes")(fastify);
 
 // Run the server!
 const start = async () => {
