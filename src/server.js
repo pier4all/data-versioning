@@ -3,28 +3,12 @@
 // imports
 // Require the framework and instantiate it
 const fastify = require('fastify')({ logger: true })
-require('dotenv').config()
 
 var db = require('./db/database')
 
 // read credentials
 const mongodb_uri = process.env.DB_URI
 const port = process.env.PORT || 3000
-
-var database = new db.Database(mongodb_uri)
-
-database.connect( (err, ok) => { 
-  if (err) {
-    console.error("Cannot connect to DB, exiting...")
-    endConnection()
-  } else {
-    start()
-  }
-})
-
-const endConnection = () => {
-  database.end(() => { console.log("** finished ** " ); }
-)}; 
 
 // content parser
 fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function (req, body, done) {
@@ -40,9 +24,11 @@ fastify.addContentTypeParser('application/json', { parseAs: 'string' }, function
 // define routes
 require("./routes/customer.routes")(fastify);
 
+
 // Run the server!
 const start = async () => {
   try {
+    await db.connect(mongodb_uri)
     await fastify.listen(port)
   } catch (err) {
     fastify.log.error(err)
@@ -50,3 +36,10 @@ const start = async () => {
     process.exit(1)
   }
 }
+
+const endConnection = async() => {
+  await database.end()
+  console.log("** finished ** " ); 
+}; 
+
+start()

@@ -5,8 +5,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test": "tape test/*.js | faucet"
+    "dev": "env-cmd -f ./config/dev.env nodemon src/server.js",
+    "test": "env-cmd -f ./config/test.env tap test/*.js"
   },
   "repository": {
     "type": "git",
@@ -27,15 +27,12 @@
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "colortape": "^0.1.2",
-    "dotenv": "^8.2.0",
     "fastify": "^3.11.0",
-    "mockgoose": "^8.0.4",
     "mongoose": "^5.11.13",
     "nodemon": "^2.0.7"
   },
   "devDependencies": {
-    "faucet": "0.0.1",
-    "nyc": "^15.1.0",
-    "tape": "^5.2.2"
+    "env-cmd": "^10.1.0",
+    "tap": "^14.11.0"
   }
 }

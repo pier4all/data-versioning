@@ -1,7 +1,7 @@
 // imports
 var mongoose = require('mongoose');
 var uuid = require('node-uuid');
-var transverse = require('../versioning/versioning');
+var versioning = require('../versioning/versioning');
 mongoose.Promise = require('bluebird');
 
 const NAME = "owner"
@@ -22,6 +22,6 @@ let ownersSchema = new Schema({
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }
-ownersSchema.plugin(transverse, NAME + "s.versioning");
+ownersSchema.plugin(versioning, NAME + "s.versioning");
 
 module.exports = mongoose.model(NAME, ownersSchema);

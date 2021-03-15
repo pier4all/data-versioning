@@ -206,8 +206,8 @@ module.exports = function (schema, options) {
         delete this._session
 
         // save current version clone in shadow collection 
-        let delete_info = this[c.DELETION]
-        delete this[c.DELETION]
+        let delete_info = this[c.DELETION] || {}
+        if (delete_info) delete this[c.DELETION]
 
         var clone = this.toObject();
         clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };

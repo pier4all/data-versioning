@@ -1,6 +1,6 @@
 // imports
 var mongoose = require('mongoose');
-var transverse = require('../versioning/versioning');
+var versioning = require('../versioning/versioning');
 mongoose.Promise = require('bluebird');
 
 const NAME = "employee"
@@ -16,6 +16,6 @@ let employeeSchema = new Schema({
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }
-employeeSchema.plugin(transverse, NAME + "s.versioning");
+employeeSchema.plugin(versioning, NAME + "s.versioning");
 
 module.exports = mongoose.model(NAME, employeeSchema);
