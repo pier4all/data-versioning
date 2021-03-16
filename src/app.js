@@ -1,0 +1,26 @@
+'use strict'
+
+const fastify = require('fastify')
+
+function build(opts={}) {
+
+    const app = fastify(opts)
+
+    // content parser
+    app.addContentTypeParser('application/json', { parseAs: 'string' }, function (req, body, done) {
+        try {
+            var json = JSON.parse(body)
+            done(null, json)
+        } catch (err) {
+            err.statusCode = 400
+            done(err, undefined)
+        }
+    })
+
+    // define routes
+    require("./routes/customer.routes")(app);
+
+    return app
+}
+
+module.exports = build
