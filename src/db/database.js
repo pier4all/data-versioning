@@ -9,7 +9,8 @@ exports.connect =  async (mongodb_uri) => {
         await mongoose.connect(mongodb_uri, {useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false})
         console.log(chalk.green.bold("Database.connect: DB connected "));
     } catch (err) {
-        console.error(`Database.connect: MongoDB connection error. Please make sure MongoDB is running:` + err);
+        console.error(`Database.connect: MongoDB connection error. Please make sure MongoDB is running:` + err.message);
+        throw new Error(err)
     };
 }
 
