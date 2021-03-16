@@ -1,13 +1,39 @@
+var chalk = require('chalk');
+
 const versioning = require('../../src/versioning/versioning');
 const util = require('../../src/versioning/util');
 const c = require('../../src/versioning/constants');
+
 const mongoose = require('mongoose');
+mongoose.Promise = require('bluebird');
 var Schema = mongoose.Schema;
 
-var db = require('../../src/db/database')
+// start in memory server
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
-// connect to db
-db.connect(process.env.DB_URI)
+const mongoServer = new MongoMemoryServer();
+
+mongoServer.getUri().then((mongoUri) => {
+  const mongooseOpts = {
+    useUnifiedTopology: true, 
+    useNewUrlParser: true, 
+    useFindAndModify: false
+  };
+
+  mongoose.connect(mongoUri, mongooseOpts);
+
+  mongoose.connection.on('error', (e) => {
+    if (e.message.code === 'ETIMEDOUT') {
+      console.log(e);
+      mongoose.connect(mongoUri, mongooseOpts);
+    }
+    console.log(e);
+  });
+
+  mongoose.connection.once('open', () => {
+    console.log(chalk.bold.green(`MongoDB successfully connected to ${mongoUri}`));
+  });
+});
 
 // test schema definition
 const NAME = "test"
@@ -106,5 +132,7 @@ tap.test('trying to update deleted version fails', async (childTest) => {
 tap.teardown(async function() { 
   await Mock.deleteMany()
   await Mock.VersionedModel.deleteMany()
-  await db.end()
+  mongoose.disconnect();
+  mongoServer.stop();
+  console.log(chalk.bold.red('MongoDB disconnected'));
 });
