@@ -9,7 +9,7 @@ mongoose.Promise = require('bluebird');
 var Schema = mongoose.Schema;
 
 // start in memory server
-import { MongoMemoryServer } from 'mongodb-memory-server';
+const { MongoMemoryServer } = require( 'mongodb-memory-server' );
 
 const mongoServer = new MongoMemoryServer();
 
