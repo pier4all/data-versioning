@@ -4,6 +4,8 @@ var c = require("./constants")
 "use strict";
 
 module.exports = function (schema, options) {
+
+    //TODO: Review all this handling of the options (inherited from vermongo)
     if (typeof (options) == 'string') {
         options = {
             collection: options
@@ -27,6 +29,16 @@ module.exports = function (schema, options) {
     }
     if (schema.path(c.DELETER)) {
         throw Error("Schema can't have a path called \"" + c.DELETER + "\"");
+    }
+
+    if (schema.path(c.EDITION)) {
+        throw Error("Schema can't have a path called \"" + c.EDITION + "\"");
+    }
+    if (schema.path(c.DELETION)) {
+        throw Error("Schema can't have a path called \"" + c.DELETION + "\"");
+    }
+    if (schema.path(c.SESSION)) {
+        throw Error("Schema can't have a path called \"" + c.SESSION + "\"");
     }
 
     // create the versioned schema
@@ -146,7 +158,7 @@ module.exports = function (schema, options) {
     };
 
     schema.pre('save', async function (next) {
-
+  
         if (this.isNew) {
             console.log('[new]');
             this[c.VERSION] = 1;
@@ -207,7 +219,7 @@ module.exports = function (schema, options) {
 
         // save current version clone in shadow collection 
         let delete_info = this[c.DELETION] || {}
-        if (delete_info) delete this[c.DELETION]
+        delete this[c.DELETION]
 
         var clone = this.toObject();
         clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
@@ -218,7 +230,7 @@ module.exports = function (schema, options) {
             "start": start,
             "end": now
         }
-        clone[c.DELETER] = delete_info[c.DELETER] || "deleter";
+        clone[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER;
 
         await new schema.statics.VersionedModel(clone).save(session)
 

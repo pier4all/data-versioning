@@ -84,3 +84,59 @@ tap.test(`schema cannot have field ${c.VALIDITY}`, t => {
   t.end();
 });
 
+tap.test(`schema cannot have field ${c.DELETION}`, t => {
+  try {    
+    const NAME = "bad"  
+    let badSchema = new Schema({ });
+
+    let reservedField = {}
+    reservedField[c.DELETION] = { type: Date, required: false }
+    badSchema.add(reservedField)
+    
+    badSchema.plugin(versioning, NAME + "s.versioning");
+    mongoose.model(NAME, badSchema);
+    t.fail('Should not get here');
+
+  } catch (err) {
+    t.ok(err, 'Got expected error');
+  }
+  t.end();
+});
+
+tap.test(`schema cannot have field ${c.EDITION}`, t => {
+  try {    
+    const NAME = "bad"  
+    let badSchema = new Schema({ });
+
+    let reservedField = {}
+    reservedField[c.EDITION] = { type: Date, required: false }
+    badSchema.add(reservedField)
+    
+    badSchema.plugin(versioning, NAME + "s.versioning");
+    mongoose.model(NAME, badSchema);
+    t.fail('Should not get here');
+
+  } catch (err) {
+    t.ok(err, 'Got expected error');
+  }
+  t.end();
+});
+
+tap.test(`schema cannot have field ${c.SESSION}`, t => {
+  try {    
+    const NAME = "bad"  
+    let badSchema = new Schema({ });
+
+    let reservedField = {}
+    reservedField[c.SESSION] = { type: Date, required: false }
+    badSchema.add(reservedField)
+    
+    badSchema.plugin(versioning, NAME + "s.versioning");
+    mongoose.model(NAME, badSchema);
+    t.fail('Should not get here');
+
+  } catch (err) {
+    t.ok(err, 'Got expected error');
+  }
+  t.end();
+});

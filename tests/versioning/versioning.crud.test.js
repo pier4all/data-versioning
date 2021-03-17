@@ -47,6 +47,10 @@ const mockOne = {
   _id: new mongoose.Types.ObjectId(),
   data: "first mock test" 
 }
+const mockTwo = { 
+  _id: new mongoose.Types.ObjectId(),
+  data: "second mock test" 
+}
 
 let initialMock
 
@@ -115,6 +119,18 @@ tap.test('delete object moves it to archive', async (childTest) => {
   
   var archivedMock = await Mock.VersionedModel.findById({ _id: mockOne[c.ID], _version: 2 })
   childTest.isEqual(archivedMock[c.DELETER], "test")
+
+  childTest.end()
+});
+
+tap.test('delete object has default deleter if not provided', async (childTest) => {
+  var mock = await new Mock(mockTwo).save()
+  
+  await mock.remove()
+
+  var archivedMock = await Mock.VersionedModel.findById({ _id: mockTwo[c.ID], _version: 1 })
+  childTest.isEqual(archivedMock[c.DELETER], c.DEFAULT_DELETER)
+
   childTest.end()
 });
 
@@ -130,8 +146,8 @@ tap.test('trying to update deleted version fails', async (childTest) => {
 });
 
 tap.teardown(async function() { 
-  await Mock.deleteMany()
-  await Mock.VersionedModel.deleteMany()
+  //await Mock.deleteMany()
+  //await Mock.VersionedModel.deleteMany()
   mongoose.disconnect();
   mongoServer.stop();
   console.log(chalk.bold.red('MongoDB disconnected'));

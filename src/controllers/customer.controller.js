@@ -1,6 +1,7 @@
 
 const Customer = require("../models/customer");
 const util = require('../versioning/util')
+const c = require('../versioning/constants')
 var chalk = require('chalk');
 mongoose = require('mongoose')
 
@@ -58,7 +59,7 @@ exports.update = async (req, res) => {
       session.startTransaction();
 
       // store _session in document
-      customer._session = session
+      customer[c.SESSION] = session
 
       await customer.save({session})   
 
@@ -100,15 +101,15 @@ exports.delete = async (req, res) => {
     if (!customer)
         res.status(404).send({ message: "Not found Customer with id " + id });
     else {
-      // set the deltion info
-      customer._deletion = req.body || {}
+      // set the deletion info
+      customer[c.DELETION] = req.body || {}
 
       // start transaction
       session = await mongoose.startSession();
       session.startTransaction();
 
       // store _session in document
-      customer._session = session
+      customer[c.SESSION] = session
 
       let data = await customer.remove({session})    
       res.status(200).send(data);
