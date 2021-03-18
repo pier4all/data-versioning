@@ -155,7 +155,7 @@ exports.findValidVersion = async(req, res) => {
       console.error("Bad date provided");
       res
           .status(400)
-          .send({ message: "Ivalid date provided " + req.query.date });
+          .send({ message: "Invalid date provided " + req.query.date });
       return;    
     }
 
@@ -186,7 +186,7 @@ exports.findVersion = async(req, res) => {
       console.error("Bad version provided");
       res
           .status(400)
-          .send({ message: "Ivalid version provided " + version });
+          .send({ message: "Invalid version provided " + version });
       return;    
     }
 
