@@ -9,10 +9,13 @@ const NAME = "service"
 var Schema = mongoose.Schema;
 
 let serviceSchema = new Schema({
+  servno: { type: Number, required: true, unique: true },
   type : { type : String, required: true, default: "Stunde" },
-  price: [ { value: { type: Number, required: true },
-             "ref-employee": { type: mongoose.Schema.Types.ObjectId, ref: 'employee'} 
-  } ]
+  descr : { type : String, required: false },
+  price: { type: Number, required: true }
+  //price: [ { value: { type: Number, required: true },
+  //  "ref-employee": { type: mongoose.Schema.Types.ObjectId, ref: 'employee'} 
+  //} ]
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }

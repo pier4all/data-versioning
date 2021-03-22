@@ -9,6 +9,7 @@ const NAME = "customer"
 var Schema = mongoose.Schema;
 
 let customerSchema = new Schema({
+  custno: { type: Number, required: true, unique: true },
   name: { type: String, required: true },
   email : { type : String, required: true, unique: true },
   language: { type: String, required: true, default: "DE" }

@@ -9,6 +9,7 @@ const NAME = "employee"
 var Schema = mongoose.Schema;
 
 let employeeSchema = new Schema({
+  empno: { type: Number, required: true, unique: true },
   svn : { type : String, required: true, unique: true },
   lastname: { type: String, required: true },
   firstname: { type: String, required: true },
