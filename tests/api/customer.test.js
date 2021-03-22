@@ -49,7 +49,7 @@ tap.test('create customer 1', async t => {
     const app = build()
     const response = await app.inject({
         method: 'POST',
-        url: '/customers/create',
+        url: '/customer/create',
         body: d.customerOne
     })
     t.strictEqual(response.statusCode, 201, 'returns a status code of 200')
@@ -59,7 +59,7 @@ tap.test('create customer 2', async t => {
     const app = build()
     const response = await app.inject({
         method: 'POST',
-        url: '/customers/create',
+        url: '/customer/create',
         body: d.customerTwo
     })
     t.strictEqual(response.statusCode, 201, 'returns a status code of 200')
@@ -70,7 +70,7 @@ tap.test('requests all the customers', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: '/customers/all'
+        url: '/customer/all'
     })
     t.strictEqual(response.statusCode, 200, 'returns a status code of 200')
     t.equal(2, JSON.parse(response.body).length)
@@ -82,7 +82,7 @@ tap.test('edit customer', async t => {
     const changes = { "language": "DE" }
     const response = await app.inject({
         method: 'PATCH',
-        url: `/customers/update/${d.customerOne._id}`,
+        url: `/customer/update/${d.customerOne._id}`,
         body: changes
     })
     t.strictEqual(response.statusCode, 200, 'returns a status code of 200')
@@ -94,7 +94,7 @@ tap.test('requests old version customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/customers/${d.customerOne._id}`
+        url: `/customer/${d.customerOne._id}`
     })
     t.strictEqual(response.statusCode, 200, 'returns a status code of 200')
     t.equal(2, JSON.parse(response.body)._version)
@@ -105,7 +105,7 @@ tap.test('requests current customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/customers/${d.customerOne._id}/1`
+        url: `/customer/${d.customerOne._id}/1`
     })
     t.strictEqual(response.statusCode, 200, 'returns a status code of 200')
     t.equal(1, JSON.parse(response.body)._version)
@@ -116,7 +116,7 @@ tap.test('delete customer', async t => {
     const app = build()
     const response = await app.inject({
         method: 'DELETE',
-        url: `/customers/delete/${d.customerOne._id}`
+        url: `/customer/delete/${d.customerOne._id}`
     })
     t.strictEqual(response.statusCode, 200, 'returns a status code of 200')
     console.log(response.body)

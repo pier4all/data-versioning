@@ -1,4 +1,5 @@
-# Rename this file to .env after filling in your DB_URI
+# Rename this file to dev.env after filling in your DB_URI
 # Do not surround the URI with quotes
 DB_URI=mongodb://<user>:<password>@<server>:<port>/<db>?authSource=<authdb>
+PORT=<port_number>
 

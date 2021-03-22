@@ -18,7 +18,7 @@ function build(opts={}) {
     })
 
     // define routes
-    require("./routes/customer.routes")(app);
+    require("./routes/abstract.routes")(app);
 
     return app
 }

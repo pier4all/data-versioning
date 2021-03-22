@@ -1,26 +1,29 @@
 
-const Customer = require("../models/customer");
 const util = require('../versioning/util')
 const c = require('../versioning/constants')
 var chalk = require('chalk');
 mongoose = require('mongoose')
 
 exports.create = async (req, res) => {
-  console.log(chalk.cyan("customer.controller.create: called create"))
+
+  console.log(chalk.cyan("abstract.controller.create: called create"))
 
   try {
-    // Create an Customer
-    const customer = new Customer(req.body);
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+
+    // Create an Model
+    const model = new Model(req.body);
 
     // Save Customer in the database
-    await customer.save()
-    res.status(201).send(customer);
+    await model.save()
+    res.status(201).send(model);
 
   } catch (error) {
-
     console.error(error);
     res.status(500).send({
-      message: "Some error occurred while creating the Customer.",
+      message: `Some error occurred while creating the ${collection}.`,
       exception: error.message
     });
   };
@@ -32,7 +35,11 @@ exports.update = async (req, res) => {
   let id
 
   try {
-    console.log(chalk.cyan("customer.controller.update: called update"))
+    console.log(chalk.cyan("abstract.controller.update: called update"))
+
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
 
     // Validate request
     if (!req.body) {
@@ -43,14 +50,14 @@ exports.update = async (req, res) => {
     id = req.params.id;
     
     // Update Customer in the database
-    let customer = await Customer.findById(id)
+    let document = await Model.findById(id)
 
-    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
+    if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else {
       // TODO: review this with Jean-Claude regarding the versioning fields
       for (var key in req.body) {
           if (req.body.hasOwnProperty(key)) {
-              customer[key] = req.body[key]
+            document[key] = req.body[key]
           }
       }
 
@@ -59,9 +66,9 @@ exports.update = async (req, res) => {
       session.startTransaction();
 
       // store _session in document
-      customer[c.SESSION] = session
+      document[c.SESSION] = session
 
-      await customer.save({session})   
+      await document.save({session})   
 
       // commit transaction
       await session.commitTransaction();
@@ -69,7 +76,7 @@ exports.update = async (req, res) => {
       console.log(chalk.greenBright("-- commit transaction --"))
 
       // return result
-      res.status(200).send(customer);
+      res.status(200).send(document);
       // TODO consider alternative status 204 with no data
     }
   } catch(error) {
@@ -79,39 +86,44 @@ exports.update = async (req, res) => {
     }
     console.error(error.message);
     res.status(500).send({
-      message: "Error occurred while updating the Customer with id=" + id,
+      message: "Error occurred while updating the document with id=" + id,
       exception:  error.message
     });
   }
 }
 
 exports.delete = async (req, res) => {
-  console.log(chalk.cyan("customer.controller.delete: called delete"))
+  console.log(chalk.cyan("abstract.controller.delete: called delete"))
 
   let session
   let id
 
   try {
+
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+
      // Get the id
     id = req.params.id;
     console.log(chalk.blue(id))
   
     // Delete Customer in the database
-    let customer = await Customer.findById(id)
-    if (!customer)
-        res.status(404).send({ message: "Not found Customer with id " + id });
+    let document = await Model.findById(id)
+    if (!document)
+        res.status(404).send({ message: "Not found document with id " + id });
     else {
       // set the deletion info
-      customer[c.DELETION] = req.body || {}
+      document[c.DELETION] = req.body || {}
 
       // start transaction
       session = await mongoose.startSession();
       session.startTransaction();
 
       // store _session in document
-      customer[c.SESSION] = session
+      document[c.SESSION] = session
 
-      let data = await customer.remove({session})    
+      let data = await document.remove({session})    
       res.status(200).send(data);
       // alternative status 204 with no data
 
@@ -129,18 +141,23 @@ exports.delete = async (req, res) => {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error deleting Customer with id=" + id });
+        .send({ message: "Error deleting document with id=" + id });
   }
 }
   
 exports.findValidVersion = async(req, res) => {
   // TODO: maybe accept a date range too
-  console.log(chalk.cyan("customer.controller.queryCustomer: called findValidVersion"))
+  console.log(chalk.cyan("abstract.controller: called findValidVersion"))
 
   let id
   let date
+
   try {
     
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+
     // Get request parameters
     id = req.params.id;
     
@@ -159,26 +176,32 @@ exports.findValidVersion = async(req, res) => {
       return;    
     }
 
-    let customer = await Customer.findValidVersion(id, date, Customer)
-    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
-    else res.send(customer);
+    let document = await Model.findValidVersion(id, date, Model)
+    if (!document) res.status(404).send({ message: "Not found document with id " + id });
+    else res.send(document);
 
   } catch(error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Customer with id=" + id,
+        .send({ message: "Error retrieving document with id=" + id,
                 exception: error.message });
   };
 };
 
 exports.findVersion = async(req, res) => {
-  console.log(chalk.cyan("customer.controller.queryCustomer: called findVersion"))
+  console.log(chalk.cyan("abstract.controller: called findVersion"))
 
   let id
   let version
 
   try {
+
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+    
+    // get query params
     id = req.params.id;
     version = req.params.version;
 
@@ -190,15 +213,15 @@ exports.findVersion = async(req, res) => {
       return;    
     }
 
-    let customer = await Customer.findVersion(id, parseInt(version), Customer)
-    if (!customer) res.status(404).send({ message: "Not found Customer with id " + id });
-    else res.send(customer);
+    let document = await Model.findVersion(id, parseInt(version), Model)
+    if (!document) res.status(404).send({ message: "Not found document with id " + id });
+    else res.send(document);
 
   } catch(error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Customer with id=" + id,
+        .send({ message: "Error retrieving document with id=" + id,
                 exception: error.message });
   };
 };
@@ -206,21 +229,26 @@ exports.findVersion = async(req, res) => {
 exports.findAll = async (req, res) => {
   
   try {
+    // Get the collection
+    const collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+
+    // get the pagination parameters
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
     
-    console.log(chalk.cyan("customer.controller.queryCustomer: called findAll, limit=" + limit + ", offset=" + offset))
+    console.log(chalk.cyan("abstract.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
 
-    let customers = await Customer.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
+    let documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
-    if (!customers) res.status(404).send({ message: "Not found Customers" });
-    else res.send(customers);
+    if (!documents) res.status(404).send({ message: "Not found" });
+    else res.send(documents);
         
   } catch (error) {
     console.error(error);
     res
         .status(500)
-        .send({ message: "Error retrieving Customers" });
+        .send({ message: "Error retrieving documents" });
   };
 };
 
