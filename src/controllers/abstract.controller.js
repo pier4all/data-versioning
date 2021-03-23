@@ -4,13 +4,17 @@ const c = require('../versioning/constants')
 var chalk = require('chalk');
 mongoose = require('mongoose')
 
+const { processError } = require('./error')
+
 exports.create = async (req, res) => {
 
   console.log(chalk.cyan("abstract.controller.create: called create"))
 
+  var collection = undefined
+
   try {
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // Create an Model
@@ -21,11 +25,8 @@ exports.create = async (req, res) => {
     res.status(201).send(model);
 
   } catch (error) {
-    console.error(error);
-    res.status(500).send({
-      message: `Some error occurred while creating the ${collection}.`,
-      exception: error.message
-    });
+    const message = `Error creating a document in the collection ${collection}.`
+    processError(res, error, message)
   };
 }
 
@@ -33,17 +34,18 @@ exports.update = async (req, res) => {
 
   let session
   let id
-
+  let collection
+  
   try {
     console.log(chalk.cyan("abstract.controller.update: called update"))
 
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // Validate request
     if (!req.body) {
-      return res.status(400).send({ message: "Data to update can not be empty!" });
+      return res.status(400).send({ message: "Data to update can not be empty" });
     }
 
     // Get the id
@@ -84,11 +86,9 @@ exports.update = async (req, res) => {
       session.endSession();
       console.log(chalk.redBright("-- ABORT transaction --"))
     }
-    console.error(error.message);
-    res.status(500).send({
-      message: "Error occurred while updating the document with id=" + id,
-      exception:  error.message
-    });
+
+    const message = `Error updating document ${id} in the collection ${collection}.`
+    processError(res, error, message)
   }
 }
 
@@ -97,11 +97,12 @@ exports.delete = async (req, res) => {
 
   let session
   let id
+  let collection
 
   try {
 
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
      // Get the id
@@ -138,10 +139,8 @@ exports.delete = async (req, res) => {
       session.endSession();
       console.log(chalk.redBright("-- ABORT transaction --"))
     }
-    console.error(error);
-    res
-        .status(500)
-        .send({ message: "Error deleting document with id=" + id });
+    const message = `Error deleting document ${id} in the collection ${collection}.`
+    processError(res, error, message)
   }
 }
   
@@ -151,11 +150,12 @@ exports.findValidVersion = async(req, res) => {
 
   let id
   let date
+  let collection 
 
   try {
     
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // Get request parameters
@@ -181,12 +181,9 @@ exports.findValidVersion = async(req, res) => {
     else res.send(document);
 
   } catch(error) {
-    console.error(error);
-    res
-        .status(500)
-        .send({ message: "Error retrieving document with id=" + id,
-                exception: error.message });
-  };
+    const message = `Error retrieving document ${id} in the collection ${collection}.`
+    processError(res, error, message)
+  }
 };
 
 exports.findVersion = async(req, res) => {
@@ -194,11 +191,11 @@ exports.findVersion = async(req, res) => {
 
   let id
   let version
+  let collection
 
   try {
-
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
     
     // get query params
@@ -218,19 +215,16 @@ exports.findVersion = async(req, res) => {
     else res.send(document);
 
   } catch(error) {
-    console.error(error);
-    res
-        .status(500)
-        .send({ message: "Error retrieving document with id=" + id,
-                exception: error.message });
-  };
+    const message = `Error retrieving document ${id} in the collection ${collection}.`
+    processError(res, error, message)
+  }
 };
 
 exports.findAll = async (req, res) => {
-  
+  let collection
   try {
     // Get the collection
-    const collection = req.params.collection;
+    collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // get the pagination parameters
@@ -245,10 +239,8 @@ exports.findAll = async (req, res) => {
     else res.send(documents);
         
   } catch (error) {
-    console.error(error);
-    res
-        .status(500)
-        .send({ message: "Error retrieving documents" });
+    const message = `Error retrieving documents from collection ${collection}.`
+    processError(res, error, message)
   };
 };
 
