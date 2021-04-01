@@ -8,7 +8,7 @@ const { processError } = require('./error')
 
 exports.create = async (req, res) => {
 
-  console.log(chalk.cyan("abstract.controller.create: called create"))
+  console.log(chalk.cyan("crud.controller.create: called create"))
 
   var collection = undefined
 
@@ -21,7 +21,14 @@ exports.create = async (req, res) => {
     const model = new Model(req.body);
 
     // Save Customer in the database
+    var start = process.hrtime();
+
     await model.save()
+
+    // log timer
+    var end = process.hrtime(start);
+    console.log(chalk.magenta.bold(`\nExecution time create: ${end[0]}s ${end[1] / 1000000}ms\n`));
+
     res.status(201).send(model);
 
   } catch (error) {
@@ -37,7 +44,7 @@ exports.update = async (req, res) => {
   let collection
   
   try {
-    console.log(chalk.cyan("abstract.controller.update: called update"))
+    console.log(chalk.cyan("crud.controller.update: called update"))
 
     // Get the collection
     collection = req.params.collection;
@@ -65,6 +72,9 @@ exports.update = async (req, res) => {
           }
       }
 
+      // start timer
+      var start = process.hrtime();
+
       // start transaction
       session = await mongoose.startSession();
       session.startTransaction();
@@ -76,6 +86,11 @@ exports.update = async (req, res) => {
 
       // commit transaction
       await session.commitTransaction();
+
+      // log timer
+      var end = process.hrtime(start);
+      console.log(chalk.magenta.bold(`\nExecution time update(incl. transaction): ${end[0]}s ${end[1] / 1000000}ms\n`));
+
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
 
@@ -95,7 +110,7 @@ exports.update = async (req, res) => {
 }
 
 exports.delete = async (req, res) => {
-  console.log(chalk.cyan("abstract.controller.delete: called delete"))
+  console.log(chalk.cyan("crud.controller.delete: called delete"))
 
   let session
   let id
@@ -119,6 +134,9 @@ exports.delete = async (req, res) => {
       // set the deletion info
       document[c.DELETION] = req.body || {}
 
+      // start timer
+      var start = process.hrtime();
+
       // start transaction
       session = await mongoose.startSession();
       session.startTransaction();
@@ -132,6 +150,11 @@ exports.delete = async (req, res) => {
 
       // commit transaction
       await session.commitTransaction();
+
+      // log timer
+      var end = process.hrtime(start);
+      console.log(chalk.magenta.bold(`\nExecution time delete(incl. transaction): ${end[0]}s ${end[1] / 1000000}ms\n`));
+
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
     
@@ -148,7 +171,7 @@ exports.delete = async (req, res) => {
   
 exports.findValidVersion = async(req, res) => {
   // TODO: maybe accept a date range too
-  console.log(chalk.cyan("abstract.controller: called findValidVersion"))
+  console.log(chalk.cyan("crud.controller: called findValidVersion"))
 
   let id
   let date
@@ -178,7 +201,15 @@ exports.findValidVersion = async(req, res) => {
       return;    
     }
 
+    // start timer
+    var start = process.hrtime();
+
     let document = await Model.findValidVersion(id, date, Model)
+    
+    // log timer
+    var end = process.hrtime(start);
+    console.log(chalk.magenta.bold(`\nExecution time findValidVersion: ${end[0]}s ${end[1] / 1000000}ms\n`));
+    
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
 
@@ -189,7 +220,7 @@ exports.findValidVersion = async(req, res) => {
 };
 
 exports.findVersion = async(req, res) => {
-  console.log(chalk.cyan("abstract.controller: called findVersion"))
+  console.log(chalk.cyan("crud.controller: called findVersion"))
 
   let id
   let version
@@ -212,7 +243,15 @@ exports.findVersion = async(req, res) => {
       return;    
     }
 
+    // start timer
+    var start = process.hrtime();
+
     let document = await Model.findVersion(id, parseInt(version), Model)
+
+    // log timer
+    var end = process.hrtime(start);
+    console.log(chalk.magenta.bold(`\nExecution time findValidVersion: ${end[0]}s ${end[1] / 1000000}ms\n`));
+
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
 
@@ -233,7 +272,7 @@ exports.findAll = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
     
-    console.log(chalk.cyan("abstract.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
+    console.log(chalk.cyan("crud.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
 
     let documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
