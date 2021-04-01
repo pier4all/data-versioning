@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "env-cmd -f ./config/dev.env nodemon src/server.js",
-    "test": "tap tests/**/*.test.js"
+    "test": "tap tests/**/*.test.js",
+    "test-api": "tap tests/api/customer.test.js"
   },
   "repository": {
     "type": "git",

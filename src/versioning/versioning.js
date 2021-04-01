@@ -1,6 +1,7 @@
 var chalk = require('chalk');
 var util = require("./util")
 var c = require("./constants")
+var ObjectId = require('mongoose').Types.ObjectId; 
 "use strict";
 
 module.exports = function (schema, options) {
@@ -30,7 +31,6 @@ module.exports = function (schema, options) {
     if (schema.path(c.DELETER)) {
         throw Error("Schema can't have a path called \"" + c.DELETER + "\"");
     }
-
     if (schema.path(c.EDITION)) {
         throw Error("Schema can't have a path called \"" + c.EDITION + "\"");
     }
@@ -99,9 +99,6 @@ module.exports = function (schema, options) {
 
     // Add special find by id and validity date that includes versioning
     schema.statics.findValidVersion = async (id, date, model) => {
-        console.log(chalk.keyword('orange')('Find with versions'), id, date );
-
-        var ObjectId = require('mongoose').Types.ObjectId; 
 
         // 1. check if in current collection is valid
         // TODO find out why 'this.findById' does not work
@@ -130,9 +127,6 @@ module.exports = function (schema, options) {
 
     // Add special find by id and version number that includes versioning
     schema.statics.findVersion = async (id, version, model) => {
-        console.log(chalk.keyword('orange')('Find with versions'), id, version );
-
-        var ObjectId = require('mongoose').Types.ObjectId; 
 
         // 1. check if version is the main collection
         // TODO find out why 'this.findById' does not work
@@ -160,7 +154,6 @@ module.exports = function (schema, options) {
     schema.pre('save', async function (next) {
   
         if (this.isNew) {
-            console.log('[new]');
             this[c.VERSION] = 1;
             return next();
         }
@@ -233,8 +226,6 @@ module.exports = function (schema, options) {
         clone[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER;
 
         await new schema.statics.VersionedModel(clone).save(session)
-
-        console.log('[removed]');
 
         next();
         return null;

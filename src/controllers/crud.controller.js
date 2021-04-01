@@ -56,7 +56,9 @@ exports.update = async (req, res) => {
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else {
-      // TODO: review this with Jean-Claude regarding the versioning fields
+      // TODO: review this with Jean-Claude 
+      // probably the whole object should be provided in the body including
+      // the version number of the existing document to update.
       for (var key in req.body) {
           if (req.body.hasOwnProperty(key)) {
             document[key] = req.body[key]
