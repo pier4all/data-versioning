@@ -6,6 +6,15 @@ mongoose = require('mongoose')
 
 const { processError } = require('./error')
 
+const fs = require('fs');
+var path = require('path');
+const NS_PER_SEC = 1e9;
+
+// output path
+var report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
+var report = path.join(__dirname, '..', '..', 'output', report_file)
+const sep = '\t'
+
 exports.create = async (req, res) => {
 
   console.log(chalk.cyan("crud.controller.create: called create"))
@@ -13,23 +22,27 @@ exports.create = async (req, res) => {
   var collection = undefined
 
   try {
+    
     // Get the collection
     collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // Create an Model
-    const model = new Model(req.body);
+    const document = new Model(req.body);
+
+    var bytesize = Buffer.from(JSON.stringify(document)).length
 
     // Save Customer in the database
     var start = process.hrtime();
+    
+    await document.save()
 
-    await model.save()
+    // log timer (milliseconds)
+    var diff = process.hrtime(start);
+    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    await fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-    // log timer
-    var end = process.hrtime(start);
-    console.log(chalk.magenta.bold(`\nExecution time create: ${end[0]}s ${end[1] / 1000000}ms\n`));
-
-    res.status(201).send(model);
+    res.status(201).send(document);
 
   } catch (error) {
     const message = `Error creating a document in the collection ${collection}.`
@@ -72,6 +85,8 @@ exports.update = async (req, res) => {
           }
       }
 
+      var bytesize = Buffer.from(JSON.stringify(document)).length
+
       // start timer
       var start = process.hrtime();
 
@@ -88,8 +103,9 @@ exports.update = async (req, res) => {
       await session.commitTransaction();
 
       // log timer
-      var end = process.hrtime(start);
-      console.log(chalk.magenta.bold(`\nExecution time update(incl. transaction): ${end[0]}s ${end[1] / 1000000}ms\n`));
+      var diff = process.hrtime(start);
+      var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+      await fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
@@ -134,6 +150,8 @@ exports.delete = async (req, res) => {
       // set the deletion info
       document[c.DELETION] = req.body || {}
 
+      var bytesize = Buffer.from(JSON.stringify(document)).length
+
       // start timer
       var start = process.hrtime();
 
@@ -152,8 +170,9 @@ exports.delete = async (req, res) => {
       await session.commitTransaction();
 
       // log timer
-      var end = process.hrtime(start);
-      console.log(chalk.magenta.bold(`\nExecution time delete(incl. transaction): ${end[0]}s ${end[1] / 1000000}ms\n`));
+      var diff = process.hrtime(start);
+      var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+      await fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
@@ -207,9 +226,11 @@ exports.findValidVersion = async(req, res) => {
     let document = await Model.findValidVersion(id, date, Model)
     
     // log timer
-    var end = process.hrtime(start);
-    console.log(chalk.magenta.bold(`\nExecution time findValidVersion: ${end[0]}s ${end[1] / 1000000}ms\n`));
-    
+    var diff = process.hrtime(start);
+    var bytesize = Buffer.from(JSON.stringify(document)).length
+    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    await fs.appendFileSync(report, ['FIND_VALID', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
 
@@ -249,8 +270,10 @@ exports.findVersion = async(req, res) => {
     let document = await Model.findVersion(id, parseInt(version), Model)
 
     // log timer
-    var end = process.hrtime(start);
-    console.log(chalk.magenta.bold(`\nExecution time findValidVersion: ${end[0]}s ${end[1] / 1000000}ms\n`));
+    var diff = process.hrtime(start);
+    var bytesize = Buffer.from(JSON.stringify(document)).length
+    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    await fs.appendFileSync(report, ['FIND_VERSION', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
