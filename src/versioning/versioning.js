@@ -59,11 +59,10 @@ module.exports = function (schema, options) {
         end: { type: Date, required: false }
     }
 
-    // TODO: maybe set default to now and required to true if deletion implementation changes
     let versionedValidityField = {}
     versionedValidityField[c.VALIDITY] = { 
-        start: { type: Date, required: false },
-        end: { type: Date, required: false}
+        start: { type: Date, required: true },
+        end: { type: Date, required: true}
     }
 
     let versionField = {}
@@ -90,6 +89,18 @@ module.exports = function (schema, options) {
     versionedSchema.add(editorField);
     versionedSchema.add(deleterField);
 
+    // add index to versioning (id, validity), 
+    const validity_end = c.VALIDITY + ".end"
+    const validity_start = c.VALIDITY + ".start"
+
+    var versionedValidityIndex = {}
+    versionedValidityIndex[c.ID + '.' + c.ID] = 1
+    versionedValidityIndex[validity_start] = 1
+    versionedValidityIndex[validity_end] = 1
+    versionedSchema.index(versionedValidityIndex)
+
+    // TODO: check if it worths to add (id, version), (id, validity) to mail collection
+
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
     versionedSchema.set("versionKey", false);
@@ -108,6 +119,8 @@ module.exports = function (schema, options) {
         let query = { "_id": ObjectId(id)}
         query[validity_start] = { $lte: date }
 
+        //console.log(chalk.magenta(JSON.stringify(query)))
+
         let current = await model.findOne(query)
         if (current) {
             { return current }
@@ -120,6 +133,8 @@ module.exports = function (schema, options) {
         query[c.ID + "." + c.ID] = ObjectId(id)
         query[validity_start] = { $lte: date }
         query[validity_end] = { $gt: date }
+
+        //console.log(chalk.magenta(JSON.stringify(query)))
         
         let version = await versionedModel.findOne(query)
         return version
@@ -144,8 +159,10 @@ module.exports = function (schema, options) {
         // we could check in two version fields
         let versionedModel = schema.statics.VersionedModel
         query = {}
-        query[c.ID + "." + c.ID] = ObjectId(id)
-        query[c.VERSION] = version
+        var versionedId = {}
+        versionedId[c.ID] = ObjectId(id)
+        versionedId[c.VERSION] = version
+        query[c.ID] = versionedId
         
         let document = await versionedModel.findOne(query)
         return document

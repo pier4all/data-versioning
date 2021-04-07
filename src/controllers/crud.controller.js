@@ -229,7 +229,7 @@ exports.findValidVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    await fs.appendFileSync(report, ['FIND_VALID', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) await fs.appendFileSync(report, ['FIND_VALID', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
@@ -273,7 +273,7 @@ exports.findVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    await fs.appendFileSync(report, ['FIND_VERSION', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) await fs.appendFileSync(report, ['FIND_VERSION', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
