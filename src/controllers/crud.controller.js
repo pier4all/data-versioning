@@ -205,7 +205,10 @@ exports.findValidVersion = async(req, res) => {
     // Get request parameters
     id = req.params.id;
     
+    var log_tag = "_NOW"
+
     if(req.query.date) {
+      log_tag = "_PAST"
       date = new Date(req.query.date)
     }
     else {
@@ -229,7 +232,7 @@ exports.findValidVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) await fs.appendFileSync(report, ['FIND_VALID', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) await fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
@@ -273,7 +276,7 @@ exports.findVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) await fs.appendFileSync(report, ['FIND_VERSION', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) await fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);

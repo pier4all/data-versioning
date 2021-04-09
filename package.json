@@ -4,7 +4,7 @@
   "description": "Repository for evaluating the different approaches to data versioning",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "env-cmd -f ./config/dev.env node src/server.js",
     "dev": "env-cmd -f ./config/dev.env nodemon src/server.js",
     "test": "tap tests/**/*.test.js",
     "test-api": "tap tests/api/customer.test.js"
