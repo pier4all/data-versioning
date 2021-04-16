@@ -3,6 +3,13 @@
 var db = require('./db/database')
 
 // read credentials
+const result = require('dotenv').config({ path: 'config/.env' })
+ 
+if (result.error) {
+  throw result.error
+}
+console.log(result.parsed)
+
 const mongodb_uri = process.env.DB_URI
 const port = process.env.PORT || 3000
 
