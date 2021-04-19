@@ -40,7 +40,7 @@ exports.create = async (req, res) => {
     // log timer (milliseconds)
     var diff = process.hrtime(start);
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    await fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     res.status(201).send(document);
 
@@ -105,7 +105,7 @@ exports.update = async (req, res) => {
       // log timer
       var diff = process.hrtime(start);
       var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-      await fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+      fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
@@ -172,7 +172,7 @@ exports.delete = async (req, res) => {
       // log timer
       var diff = process.hrtime(start);
       var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-      await fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+      fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
@@ -232,7 +232,7 @@ exports.findValidVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) await fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
@@ -276,7 +276,7 @@ exports.findVersion = async(req, res) => {
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) await fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id });
     else res.send(document);
