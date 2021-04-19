@@ -28,7 +28,13 @@ const processError = (res, error, message) => {
       responseError.details = "Collection does not exist. "
       return res.status(400).send(responseError);
     }  
-  
+
+    // Check if the error comes from bad request parameters
+    if ((error.name == "Error" && error.code=="BAD_PARAMETER") ||
+        (error.name == "TypeError")) {
+      return res.status(400).send(responseError);
+    }  
+
     return res.status(500).send(responseError);
   }
 
