@@ -27,7 +27,7 @@ module.exports = fastify => {
    })
 
   // Update an Document
-  fastify.patch("/crud/:collection/:id", async (request, reply) => {
+  fastify.patch("/crud/:collection/:id/:version", async (request, reply) => {
     return controller.update(request, reply)
   })
 

@@ -54,6 +54,7 @@ exports.update = async (req, res) => {
 
   let session
   let id
+  let version
   let collection
   
   try {
@@ -68,52 +69,76 @@ exports.update = async (req, res) => {
       return res.status(400).send({ message: "Data to update can not be empty" });
     }
 
+    version = req.params.version;
+
+    if (!util.isValidVersion(version)) {
+      console.error("Bad version provided");
+      res
+          .status(400)
+          .send({ message: "Invalid version provided " + version });
+      return;    
+    }
+
     // Get the id
     id = req.params.id;
     
-    // Update Customer in the database
+    // Find Customer in the database
     let document = await Model.findById(id)
 
-    if (!document) res.status(404).send({ message: "Not found document with id " + id });
-    else {
-      // TODO: review this with Jean-Claude 
-      // probably the whole object should be provided in the body including
-      // the version number of the existing document to update.
-      for (var key in req.body) {
-          if (req.body.hasOwnProperty(key)) {
-            document[key] = req.body[key]
-          }
-      }
-
-      var bytesize = Buffer.from(JSON.stringify(document)).length
-
-      // start timer
-      var start = process.hrtime();
-
-      // start transaction
-      session = await mongoose.startSession();
-      session.startTransaction();
-
-      // store _session in document
-      document[c.SESSION] = session
-
-      await document.save({session})   
-
-      // commit transaction
-      await session.commitTransaction();
-
-      // log timer
-      var diff = process.hrtime(start);
-      var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-      fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
-
-      session.endSession();
-      console.log(chalk.greenBright("-- commit transaction --"))
-
-      // return result
-      res.status(200).send(document);
-      // TODO consider alternative status 204 with no data
+    if (!document) { 
+      res.status(404).send({ message: "Not found document with id " + id });
+      return
     }
+
+    version = parseInt(version);
+
+    if (document._version != version) { 
+      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`});
+      return
+    }
+
+    // modify the provided fields stkipping the protected ones
+    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body 
+    for (var key in req.body) {
+        if (req.body.hasOwnProperty(key)) {
+          if (util.isWritable(key)) {
+            document[key] = req.body[key]
+          } else {
+            // TODO: consider returning a 400
+            if (req.body[key] != document[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ));
+          }
+        }
+    }
+
+    var bytesize = Buffer.from(JSON.stringify(document)).length
+
+    // start timer
+    var start = process.hrtime();
+
+    // start transaction
+    session = await mongoose.startSession();
+    session.startTransaction();
+
+    // store _session in document
+    document[c.SESSION] = session
+
+    await document.save({session})   
+
+    // commit transaction
+    await session.commitTransaction();
+
+    // log timer
+    var diff = process.hrtime(start);
+    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+
+    session.endSession();
+    console.log(chalk.greenBright("-- commit transaction --"))
+
+    // return result
+    res.status(200).send(document);
+    // TODO consider alternative status 204 with no data
+    
   } catch(error) {
     if (session) {
       session.endSession();

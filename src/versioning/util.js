@@ -22,6 +22,13 @@ exports.cloneSchema = (schema, mongoose) => {
     return clonedSchema;
 }
 
+exports.isWritable = (field) => {
+    for (let key of [c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION]) {
+        if (key == field) return false
+    }
+    return true
+} 
+
 exports.isValidVersion = (v) => {
     if (typeof v != "string") return false // we only process strings!  
     if (isNaN(v)) return false // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
