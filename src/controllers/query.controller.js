@@ -62,7 +62,6 @@ exports.find = async (req, res) => {
   };
 };
 
-
 paramList2object = (text) => {
   var obj = {}
 

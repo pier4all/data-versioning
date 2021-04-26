@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "tap tests/**/*.test.js",
-    "test-api": "tap tests/api/customer.test.js"
+    "test-api-crud": "tap tests/api/crud.api.test.js",
+    "test-api-query": "tap tests/api/query.api.test.js"
   },
   "repository": {
     "type": "git",
