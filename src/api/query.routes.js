@@ -6,9 +6,14 @@ module.exports = fastify => {
         return { status: 'OK' }
     })
  
-    // Get all
+    // Query collection
     fastify.get('/query/:collection/find', async (request, reply) => {
         return controller.find(request, reply)
+    })
+
+    // Aggregate collection
+    fastify.post('/query/:collection/aggregate', async (request, reply) => {
+        return controller.aggregate(request, reply)
     })
   
 };

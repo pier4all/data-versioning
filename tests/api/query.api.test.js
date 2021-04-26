@@ -87,6 +87,32 @@ tap.test('filter customers by language and sort by email in ascending order', as
     t.equal(d.customerFour.custno, customers[0]['custno'])
 })
 
+tap.test('group customers by language and get two in count, language ascending order', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'POST',
+        url: '/query/customer/aggregate?limit=2',
+        body: [{"$group": {
+                    "_id": "$language",
+                    "count": {
+                    "$sum": 1
+                    }
+                }},{
+                    "$sort": {
+                        "count": -1, "_id": 1
+                      }              
+                }
+              ]
+    })
+
+    t.equal(response.statusCode, 200, 'returns a status code of 200')
+    const result = JSON.parse(response.body)
+    t.equal(2, result.length)
+    t.match("DE", result[0]['_id'])
+    t.match("ES", result[1]['_id'])
+})
+
 tap.teardown(async function() { 
     mongoose.disconnect();
     await replSet.stop();

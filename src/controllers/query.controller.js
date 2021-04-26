@@ -62,6 +62,50 @@ exports.find = async (req, res) => {
   };
 };
 
+exports.aggregate = async (req, res) => {
+  let collection
+  try {
+    // Get the collection
+    collection = req.params.collection;
+    const Model = require(`../models/${collection}`);
+
+    // get the pagination parameters
+    let limit, offset
+    try {
+      limit = parseInt(req.query.limit) || 10;
+      offset = parseInt(req.query.offset) || 0;
+    } catch (error) {    
+      var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message);
+      parseError.code = "BAD_PARAMETER"
+      const message = "Invalid request parameter"
+      processError(res, parseError, message)
+      return;    
+    }
+
+    let pipeline = req.body
+
+    console.log(chalk.cyan("query.controller.aggregate: collection=" + collection + ", limit=" + limit + ", offset=" + offset
+                                                   + ", pipeline=" + JSON.stringify(pipeline) ))
+    
+    // start logging timer
+    var start = process.hrtime();
+    
+    let documents = await Model.aggregate(pipeline).skip(offset).limit(limit)
+
+    // log timer (milliseconds)
+    var diff = process.hrtime(start);
+    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    fs.appendFileSync(report, ['FIND', collection, documents.length, new Date().toISOString(), time].join(sep) + '\n')
+
+    if (!documents) res.status(404).send({ message: "Not found" });
+    else res.send(documents);
+        
+  } catch (error) {
+    const message = `Error finding documents in collection ${collection}.`
+    processError(res, error, message)
+  };
+};
+
 paramList2object = (text) => {
   var obj = {}
 
