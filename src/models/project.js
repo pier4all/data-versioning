@@ -4,6 +4,7 @@ var versioning = require('../versioning/versioning');
 mongoose.Promise = require('bluebird');
 
 const NAME = "project"
+const DB_NAME = mongoose.connection.name
 
 // schema definition
 var Schema = mongoose.Schema;
@@ -11,8 +12,18 @@ var Schema = mongoose.Schema;
 let projectSchema = new Schema({
   prono: { type: Number, required: true, unique: true },
   title: { type: String, required: true },
-  "ref-customer" : { type : mongoose.Schema.Types.ObjectId, ref: "customer" },
-  "ref-employee" : { type : mongoose.Schema.Types.ObjectId, ref: "employee" }
+  "ref-customer" : { 
+    "$id": mongoose.Schema.Types.ObjectId, 
+    "$ref": {type: String, default: "customers" }, 
+    "$db": {type: String, default: DB_NAME }, 
+    required: true
+  },
+  "ref-employee" : { 
+    "$id": mongoose.Schema.Types.ObjectId, 
+    "$ref": {type: String, default: "employees" }, 
+    "$db": {type: String, default: DB_NAME },
+    required: true
+  }
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }

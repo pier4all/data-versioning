@@ -4,15 +4,31 @@ var versioning = require('../versioning/versioning');
 mongoose.Promise = require('bluebird');
 
 const NAME = "timesheet"
+const DB_NAME = mongoose.connection.name
 
 // schema definition
 var Schema = mongoose.Schema;
 
 let timesheetSchema = new Schema({
-  "ref-project": { type: mongoose.Schema.Types.ObjectId, ref: "project", required: true },
-  "ref-employee": { type: mongoose.Schema.Types.ObjectId, ref: "employee", required: true },
+  "ref-project": { 
+    "$id": mongoose.Schema.Types.ObjectId, 
+    "$ref": {type: String, default: "projects" }, 
+    "$db": {type: String, default: DB_NAME },
+    required: true
+  },
+  "ref-employee": { 
+    "$id": mongoose.Schema.Types.ObjectId, 
+    "$ref": {type: String, default: "employees" }, 
+    "$db": {type: String, default: DB_NAME },
+    required: true
+  },
+  "ref-service": { 
+    "$id": mongoose.Schema.Types.ObjectId, 
+    "$ref": {type: String, default: "services" }, 
+    "$db": {type: String, default: DB_NAME },
+    required: true
+  },
   date: { type: Date, required: true },
-  "ref-service": { type: mongoose.Schema.Types.ObjectId, ref: "service", required: true },
   quantity: { type: Number }
 });
 

@@ -13,9 +13,7 @@ let serviceSchema = new Schema({
   type : { type : String, required: true, default: "Stunde" },
   descr : { type : String, required: false },
   price: { type: Number, required: true }
-  //price: [ { value: { type: Number, required: true },
   //  "ref-employee": { type: mongoose.Schema.Types.ObjectId, ref: 'employee'} 
-  //} ]
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }
