@@ -234,7 +234,8 @@ module.exports = function (schema, options) {
         let delete_info = this[c.DELETION] || {}
         delete this[c.DELETION]
 
-        var clone = this.toObject();
+        let clone = JSON.parse(JSON.stringify(this.toObject()));
+
         clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
 
         const now = new Date()
