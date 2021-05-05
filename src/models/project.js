@@ -13,17 +13,15 @@ let projectSchema = new Schema({
   prono: { type: Number, required: true, unique: true },
   title: { type: String, required: true },
   "ref-customer" : { 
-    "$id": mongoose.Schema.Types.ObjectId, 
+    "$id": mongoose.Schema.Types.ObjectId,
     "$ref": {type: String, default: "customers" }, 
-    "$db": {type: String, default: DB_NAME }, 
-    required: true
+    "$db": {type: String, default: DB_NAME }
   },
   "ref-employee" : { 
-    "$id": mongoose.Schema.Types.ObjectId, 
+    "$id": mongoose.Schema.Types.ObjectId,
     "$ref": {type: String, default: "employees" }, 
-    "$db": {type: String, default: DB_NAME },
-    required: true
-  }
+    "$db": {type: String, default: DB_NAME }
+    }
 });
 
 // TODO set indexes manually after adding option { autoIndex: false }

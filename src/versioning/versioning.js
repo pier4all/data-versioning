@@ -195,7 +195,7 @@ module.exports = function (schema, options) {
             let err = new Error('modified and base versions do not match');
             throw (err);
         }
-        let clone = base;
+        let clone = JSON.parse(JSON.stringify(base));
 
         // Build Vermongo historical ID
         clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
@@ -215,7 +215,10 @@ module.exports = function (schema, options) {
         this[c.VERSION] = this[c.VERSION] + 1;
 
         // Save versioned document
-        await new schema.statics.VersionedModel(clone).save(session);
+        //console.log(chalk.magentaBright(`versioning.save: ${JSON.stringify(clone, null, 2)}`))
+        var versionedDoc = new schema.statics.VersionedModel(clone)
+
+        await versionedDoc.save(session);
 
         next();
         return null;

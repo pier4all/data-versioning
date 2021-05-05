@@ -11,22 +11,19 @@ var Schema = mongoose.Schema;
 
 let timesheetSchema = new Schema({
   "ref-project": { 
-    "$id": mongoose.Schema.Types.ObjectId, 
+    "$id": mongoose.Schema.Types.ObjectId,
     "$ref": {type: String, default: "projects" }, 
-    "$db": {type: String, default: DB_NAME },
-    required: true
+    "$db": {type: String, default: DB_NAME }
   },
   "ref-employee": { 
-    "$id": mongoose.Schema.Types.ObjectId, 
+    "$id": mongoose.Schema.Types.ObjectId,
     "$ref": {type: String, default: "employees" }, 
-    "$db": {type: String, default: DB_NAME },
-    required: true
+    "$db": {type: String, default: DB_NAME }
   },
   "ref-service": { 
-    "$id": mongoose.Schema.Types.ObjectId, 
+    "$id": mongoose.Schema.Types.ObjectId,
     "$ref": {type: String, default: "services" }, 
-    "$db": {type: String, default: DB_NAME },
-    required: true
+    "$db": {type: String, default: DB_NAME }
   },
   date: { type: Date, required: true },
   quantity: { type: Number }
