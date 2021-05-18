@@ -9,7 +9,7 @@ const NAME = "project"
 let Schema = mongoose.Schema
 
 let projectSchema = new Schema({
-  prono: { type: Number, required: true, unique: true },
+  prono: { type: Number, required: true, unique: false},
   title: { type: String, required: true },
   "ref-customer" : { type: mongoose.Schema.Types.ObjectId, ref: 'customer'},
   "ref-employee" : { type: mongoose.Schema.Types.ObjectId, ref: 'employee'} 

@@ -10,9 +10,9 @@ const NAME = "customer"
 let Schema = mongoose.Schema
 
 let customerSchema = new Schema({
-  custno: { type: Number, required: true, unique: true },
+  custno: { type: Number, required: true, unique: false },
   name: { type: String, required: true },
-  email : { type : String, required: true, unique: true },
+  email : { type : String, required: true, unique: false },
   language: { type: String, required: true, default: "DE" }
 })
 
