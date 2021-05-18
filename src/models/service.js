@@ -9,7 +9,7 @@ const NAME = "service"
 let Schema = mongoose.Schema
 
 let serviceSchema = new Schema({
-  servno: { type: Number, required: true, unique: true },
+  servno: { type: Number, required: true, unique: false },
   type : { type : String, required: true, default: "Stunde" },
   descr : { type : String, required: false },
   price: { type: Number, required: true }
