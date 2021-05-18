@@ -41,7 +41,6 @@ module.exports = function (schema, options) {
         throw Error("Schema can't have a path called \"" + c.SESSION + "\"");
     }
 
-    
     let validityField = {}
     validityField[c.VALIDITY] = { 
         start: { type: Date, required: true, default: Date.now },
@@ -52,7 +51,7 @@ module.exports = function (schema, options) {
     editorField[c.EDITOR] = { type: String, required: true, default: c.DEFAULT_EDITOR }
 
     let deleterField = {}
-    deleterField[c.DELETER] = { type: String, required: false}
+    deleterField[c.DELETER] = { type: String, required: false }
 
     let versionField = {}
     versionField[c.VERSION] = { type: Number, required: true, default: 1, select: true }
@@ -106,15 +105,14 @@ module.exports = function (schema, options) {
         query = {}
         query[c.ID + "." + c.ID] = ObjectId(id)
         query[validity_start] = { $lte: date }
-        validity_end_filter = {  }
-        validity_end_filter[validity_end] = {$gt: date}
-        validity_end_undefined = {  }
-        validity_end_undefined[validity_end] = {$exists: false}
+        validity_end_filter = {}
+        validity_end_filter[validity_end] = { $gt: date }
+        validity_end_undefined = {}
+        validity_end_undefined[validity_end] = { $exists: false }
 
         query["$or"] = [validity_end_filter, validity_end_undefined]
         console.log(chalk.magenta(JSON.stringify(query)))
         
-        // let version = await versionedModel.findOne(query)
         let version = await model.findOne(query)
         return version
     };
@@ -125,12 +123,6 @@ module.exports = function (schema, options) {
         let query = {}
         query[c.ID + "." + c.ID] = ObjectId(id)
         query[c.ID + "." + c.VERSION] = version
-
-        // query = {}
-        // var versionedId = {}
-        // versionedId[c.ID] = ObjectId(id)
-        // versionedId[c.VERSION] = version
-        // query[c.ID] = versionedId
 
         console.log(chalk.magenta(`versioning.js: findVersion query = ${JSON.stringify(query)}`))
         let document = await model.findOne(query)
