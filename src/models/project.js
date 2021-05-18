@@ -10,7 +10,7 @@ const DB_NAME = mongoose.connection.name
 var Schema = mongoose.Schema;
 
 let projectSchema = new Schema({
-  prono: { type: Number, required: true, unique: true },
+  prono: { type: Number, required: true, unique: false},
   title: { type: String, required: true },
   "ref-customer" : { 
     "$id": mongoose.Schema.Types.ObjectId,

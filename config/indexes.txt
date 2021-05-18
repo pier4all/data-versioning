@@ -1,0 +1,8 @@
+
+use data_versioning_plain
+db.projects.createIndex({"_id._version":1, prono:1}, { unique: true })
+
+
+db.customers.createIndex({"_id._version":1, custno:1}, { unique: true })
+db.customers.createIndex({"_id._version":1, email:1}, { unique: true })
+
