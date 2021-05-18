@@ -1,7 +1,13 @@
 // imports
+<<<<<<< HEAD
 const mongoose = require('mongoose')
 const versioning = require('mongoose-versioned/source/versioning')
 mongoose.Promise = require('bluebird')
+=======
+var mongoose = require('mongoose');
+// var versioning = require('../versioning/versioning');
+mongoose.Promise = require('bluebird');
+>>>>>>> ea60771 (first working version)
 
 const NAME = "service"
 
@@ -17,6 +23,10 @@ let serviceSchema = new Schema({
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }
+<<<<<<< HEAD
 serviceSchema.plugin(versioning, {collection: NAME + "s.versioning", mongoose})
+=======
+// serviceSchema.plugin(versioning, NAME + "s.versioning");
+>>>>>>> ea60771 (first working version)
 
 module.exports = mongoose.model(NAME, serviceSchema)

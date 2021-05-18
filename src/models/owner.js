@@ -22,6 +22,10 @@ let ownersSchema = new Schema({
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }
+<<<<<<< HEAD
 ownersSchema.plugin(versioning, {collection: NAME + "s.versioning", mongoose})
+=======
+// ownersSchema.plugin(versioning, NAME + "s.versioning");
+>>>>>>> ea60771 (first working version)
 
 module.exports = mongoose.model(NAME, ownersSchema)

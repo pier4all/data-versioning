@@ -1,8 +1,14 @@
 // imports
+<<<<<<< HEAD
 const mongoose = require('mongoose')
 require('../db/dbref').loadType(mongoose)
 const versioning = require('mongoose-versioned/source/versioning')
 mongoose.Promise = require('bluebird')
+=======
+var mongoose = require('mongoose');
+// var versioning = require('../versioning/versioning');
+mongoose.Promise = require('bluebird');
+>>>>>>> ea60771 (first working version)
 
 const NAME = "timesheet"
 const DB_NAME = mongoose.connection.name
@@ -19,6 +25,10 @@ let timesheetSchema = new Schema({
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }
+<<<<<<< HEAD
 timesheetSchema.plugin(versioning, {collection: NAME + "s.versioning", mongoose})
+=======
+// timesheetSchema.plugin(versioning, NAME + "s.versioning");
+>>>>>>> ea60771 (first working version)
 
 module.exports = mongoose.model(NAME, timesheetSchema)

@@ -91,9 +91,10 @@ exports.update = async (req, res) => {
     session = await mongoose.startSession()
     session.startTransaction()
 
-    // store _session in document and save
-    document[constants.SESSION] = session
-    await document.save({session})
+    // store _session in document
+    // document[c.SESSION] = session
+
+    await document.save({session})   
 
     // commit transaction
     await session.commitTransaction()
@@ -210,8 +211,8 @@ exports.findValidVersion = async(req, res) => {
     // start timer
     const start = process.hrtime()
 
-    let document = await Model.findValidVersion(id, date, Model)
-
+    let document = await Model.findById(id)
+    
     // log timer
     const diff = process.hrtime(start)
     if (document) util.logTimer(report, 'FIND_VALID' + log_tag, diff, document, collection)
@@ -250,8 +251,7 @@ exports.findVersion = async(req, res) => {
     // start timer
     const start = process.hrtime()
 
-    // find the document
-    const document = await Model.findVersion(id, parseInt(version), Model)
+    let document = await Model.findById(id)
 
     // log timer
     const diff = process.hrtime(start)
