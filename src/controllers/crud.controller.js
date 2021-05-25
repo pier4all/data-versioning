@@ -191,9 +191,7 @@ exports.delete = async (req, res) => {
       // store _session in document
       document[c.SESSION] = session
 
-      let data = await document.remove({session})
-      res.status(200).send(data);
-      // alternative status 204 with no data
+      let data = await document.remove({session})    
 
       // commit transaction
       await session.commitTransaction();
@@ -202,6 +200,9 @@ exports.delete = async (req, res) => {
       var diff = process.hrtime(start);
       var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
       fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+
+      res.status(200).send(data);
+      // alternative status 204 with no data
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
