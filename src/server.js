@@ -4,7 +4,7 @@ var db = require('./db/database')
 
 // read credentials
 const result = require('dotenv').config({ path: 'config/.env' })
- 
+
 if (result.error) {
   throw result.error
 }
@@ -27,19 +27,20 @@ const start = async () => {
 
     await db.connect(mongodb_uri)
     await app.listen(port)
-  
+
   } catch (err) {
-  
+
     fastify.log.error(err)
     endConnection()
     process.exit(1)
-  
+
   }
 }
 
+/* JCS: error in reference */
 const endConnection = async() => {
-  await database.end()
-  console.log("** finished ** " ); 
-}; 
+  await db.end() //database.end()
+  console.log("** finished ** " );
+};
 
 start()

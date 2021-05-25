@@ -27,25 +27,25 @@ exports.find = async (req, res) => {
       query = paramList2object(req.query.query) || {};
       projection = valuesAsInt(paramList2object(req.query.projection)) || {};
       sort = valuesAsInt(paramList2object(req.query.sort)) || { _id: 1 };
-      
+
       limit = parseInt(req.query.limit) || 10;
       offset = parseInt(req.query.offset) || 0;
 
-    } catch (error) {    
+    } catch (error) {
         var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message);
         parseError.code = "BAD_PARAMETER"
         const message = "Invalid request parameter"
         processError(res, parseError, message)
-        return;    
+        return;
     }
-    
+
     console.log(chalk.cyan("query.controller.find: collection=" + collection + ", query=" + JSON.stringify(query)
                                               + ", projection=" + JSON.stringify(projection) + ", sort=" + JSON.stringify(sort)
                                               + ", limit=" + limit + ", offset=" + offset))
 
     // start logging timer
     var start = process.hrtime();
-    
+
     let documents = await Model.find(query, projection, { sort: sort }).skip(offset).limit(limit)
 
     // log timer (milliseconds)
@@ -55,7 +55,7 @@ exports.find = async (req, res) => {
 
     if (!documents) res.status(404).send({ message: "Not found" });
     else res.send(documents);
-        
+
   } catch (error) {
     const message = `Error finding documents in collection ${collection}.`
     processError(res, error, message)
@@ -74,22 +74,22 @@ exports.aggregate = async (req, res) => {
     try {
       limit = parseInt(req.query.limit) || 10;
       offset = parseInt(req.query.offset) || 0;
-    } catch (error) {    
+    } catch (error) {
       var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message);
       parseError.code = "BAD_PARAMETER"
       const message = "Invalid request parameter"
       processError(res, parseError, message)
-      return;    
+      return;
     }
 
     let pipeline = req.body
 
     console.log(chalk.cyan("query.controller.aggregate: collection=" + collection + ", limit=" + limit + ", offset=" + offset
                                                    + ", pipeline=" + JSON.stringify(pipeline) ))
-    
+
     // start logging timer
     var start = process.hrtime();
-    
+
     let documents = await Model.aggregate(pipeline).skip(offset).limit(limit)
 
     // log timer (milliseconds)
@@ -99,13 +99,14 @@ exports.aggregate = async (req, res) => {
 
     if (!documents) res.status(404).send({ message: "Not found" });
     else res.send(documents);
-        
+
   } catch (error) {
     const message = `Error finding documents in collection ${collection}.`
     processError(res, error, message)
   };
 };
 
+/* JCS: use 'const' and 'let' */
 paramList2object = (text) => {
   var obj = {}
 
@@ -124,7 +125,7 @@ paramList2object = (text) => {
       }
       obj[param[0].trim()] = param[1].trim()
     }
-  } 
+  }
   return obj
 }
 

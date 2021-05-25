@@ -1,7 +1,7 @@
 var chalk = require('chalk');
 var util = require("./util")
 var c = require("./constants")
-var ObjectId = require('mongoose').Types.ObjectId; 
+var ObjectId = require('mongoose').Types.ObjectId;
 "use strict";
 
 module.exports = function (schema, options) {
@@ -18,6 +18,13 @@ module.exports = function (schema, options) {
     options.mongoose = options.mongoose || require('mongoose');
     let mongoose = options.mongoose;
 
+    /* JCS: simpler
+    [c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].map(
+        key => if (schema.path(key)) throw Error(
+            `Schema can't have a path called "${key}"`
+        )
+    )
+    */
     // Make sure there's no reserved paths
     if (schema.path(c.VERSION)) {
         throw Error("Schema can't have a path called \"" + c.VERSION + "\"");
@@ -50,17 +57,17 @@ module.exports = function (schema, options) {
             versionedSchema.set(key, options[key]);
         }
     }
-    
+
     // Define Custom fields
     // TODO: validate end should be later than start
     let validityField = {}
-    validityField[c.VALIDITY] = { 
+    validityField[c.VALIDITY] = {
         start: { type: Date, required: true, default: Date.now },
         end: { type: Date, required: false }
     }
 
     let versionedValidityField = {}
-    versionedValidityField[c.VALIDITY] = { 
+    versionedValidityField[c.VALIDITY] = {
         start: { type: Date, required: true },
         end: { type: Date, required: true}
     }
@@ -89,7 +96,7 @@ module.exports = function (schema, options) {
     versionedSchema.add(editorField);
     versionedSchema.add(deleterField);
 
-    // add index to versioning (id, validity), 
+    // add index to versioning (id, validity),
     const validity_end = c.VALIDITY + ".end"
     const validity_start = c.VALIDITY + ".start"
 
@@ -104,7 +111,7 @@ module.exports = function (schema, options) {
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
     versionedSchema.set("versionKey", false);
-    
+
     // Add reference to model to original schema
     schema.statics.VersionedModel = mongoose.model(options.collection, versionedSchema);
 
@@ -135,7 +142,7 @@ module.exports = function (schema, options) {
         query[validity_end] = { $gt: date }
 
         //console.log(chalk.magenta(JSON.stringify(query)))
-        
+
         let version = await versionedModel.findOne(query)
         return version
     };
@@ -163,13 +170,13 @@ module.exports = function (schema, options) {
         versionedId[c.ID] = ObjectId(id)
         versionedId[c.VERSION] = version
         query[c.ID] = versionedId
-        
+
         let document = await versionedModel.findOne(query)
         return document
     };
 
     schema.pre('save', async function (next) {
-  
+
         if (this.isNew) {
             this[c.VERSION] = 1;
             return next();
@@ -203,7 +210,7 @@ module.exports = function (schema, options) {
         // Set validity to end now for versioned and to start now for current
         const now = new Date()
         const start = base[c.VALIDITY]["start"]
-        
+
         clone[c.VALIDITY] = {
             "start": start,
             "end": now
@@ -230,7 +237,7 @@ module.exports = function (schema, options) {
         const session = {session: this._session}
         delete this._session
 
-        // save current version clone in shadow collection 
+        // save current version clone in shadow collection
         let delete_info = this[c.DELETION] || {}
         delete this[c.DELETION]
 

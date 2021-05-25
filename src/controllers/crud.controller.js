@@ -7,6 +7,7 @@ mongoose = require('mongoose')
 const { processError } = require('./error')
 
 const fs = require('fs');
+/* JCS: use 'const' and 'let', not 'var' */
 var path = require('path');
 const NS_PER_SEC = 1e9;
 
@@ -15,6 +16,7 @@ var report_file = 'time_report_' + new Date().toISOString().replace('T', '_').re
 var report = path.join(__dirname, '..', '..', 'output', report_file)
 const sep = '\t'
 
+/* JCS: omit semicolons */
 exports.create = async (req, res) => {
 
   console.log(chalk.cyan("crud.controller.create: called create"))
@@ -22,7 +24,7 @@ exports.create = async (req, res) => {
   var collection = undefined
 
   try {
-    
+
     // Get the collection
     collection = req.params.collection;
     const Model = require(`../models/${collection}`);
@@ -34,7 +36,7 @@ exports.create = async (req, res) => {
 
     // Save Customer in the database
     var start = process.hrtime();
-    
+
     await document.save()
 
     // log timer (milliseconds)
@@ -50,13 +52,14 @@ exports.create = async (req, res) => {
   };
 }
 
+/* JCS: function too long, identify reusability */
 exports.update = async (req, res) => {
 
   let session
   let id
   let version
   let collection
-  
+
   try {
     console.log(chalk.cyan("crud.controller.update: called update"))
 
@@ -76,29 +79,29 @@ exports.update = async (req, res) => {
       res
           .status(400)
           .send({ message: "Invalid version provided " + version });
-      return;    
+      return;
     }
 
     // Get the id
     id = req.params.id;
-    
+
     // Find Customer in the database
     let document = await Model.findById(id)
 
-    if (!document) { 
+    if (!document) {
       res.status(404).send({ message: "Not found document with id " + id });
       return
     }
 
     version = parseInt(version);
 
-    if (document._version != version) { 
+    if (document._version != version) {
       res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`});
       return
     }
 
     // modify the provided fields stkipping the protected ones
-    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body 
+    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body
     for (var key in req.body) {
         if (req.body.hasOwnProperty(key)) {
           if (util.isWritable(key)) {
@@ -122,7 +125,7 @@ exports.update = async (req, res) => {
     // store _session in document
     document[c.SESSION] = session
 
-    await document.save({session})   
+    await document.save({session})
 
     // commit transaction
     await session.commitTransaction();
@@ -138,7 +141,7 @@ exports.update = async (req, res) => {
     // return result
     res.status(200).send(document);
     // TODO consider alternative status 204 with no data
-    
+
   } catch(error) {
     if (session) {
       session.endSession();
@@ -150,6 +153,7 @@ exports.update = async (req, res) => {
   }
 }
 
+/* JCS: function too long */
 exports.delete = async (req, res) => {
   console.log(chalk.cyan("crud.controller.delete: called delete"))
 
@@ -166,7 +170,7 @@ exports.delete = async (req, res) => {
      // Get the id
     id = req.params.id;
     console.log(chalk.blue(id))
-  
+
     // Delete Customer in the database
     let document = await Model.findById(id)
     if (!document)
@@ -187,7 +191,7 @@ exports.delete = async (req, res) => {
       // store _session in document
       document[c.SESSION] = session
 
-      let data = await document.remove({session})    
+      let data = await document.remove({session})
       res.status(200).send(data);
       // alternative status 204 with no data
 
@@ -201,7 +205,7 @@ exports.delete = async (req, res) => {
 
       session.endSession();
       console.log(chalk.greenBright("-- commit transaction --"))
-    
+
     }
   } catch(error) {
     if (session) {
@@ -212,24 +216,25 @@ exports.delete = async (req, res) => {
     processError(res, error, message)
   }
 }
-  
+
+/* JCS: function too long */
 exports.findValidVersion = async(req, res) => {
   // TODO: maybe accept a date range too
   console.log(chalk.cyan("crud.controller: called findValidVersion"))
 
   let id
   let date
-  let collection 
+  let collection
 
   try {
-    
+
     // Get the collection
     collection = req.params.collection;
     const Model = require(`../models/${collection}`);
 
     // Get request parameters
     id = req.params.id;
-    
+
     var log_tag = "_NOW"
 
     if(req.query.date) {
@@ -245,14 +250,14 @@ exports.findValidVersion = async(req, res) => {
       res
           .status(400)
           .send({ message: "Invalid date provided " + req.query.date });
-      return;    
+      return;
     }
 
     // start timer
     var start = process.hrtime();
 
     let document = await Model.findValidVersion(id, date, Model)
-    
+
     // log timer
     var diff = process.hrtime(start);
     var bytesize = Buffer.from(JSON.stringify(document)).length
@@ -279,7 +284,7 @@ exports.findVersion = async(req, res) => {
     // Get the collection
     collection = req.params.collection;
     const Model = require(`../models/${collection}`);
-    
+
     // get query params
     id = req.params.id;
     version = req.params.version;
@@ -289,7 +294,7 @@ exports.findVersion = async(req, res) => {
       res
           .status(400)
           .send({ message: "Invalid version provided " + version });
-      return;    
+      return;
     }
 
     // start timer
@@ -322,14 +327,14 @@ exports.findAll = async (req, res) => {
     // get the pagination parameters
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
-    
+
     console.log(chalk.cyan("crud.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
 
     let documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
     if (!documents) res.status(404).send({ message: "Not found" });
     else res.send(documents);
-        
+
   } catch (error) {
     const message = `Error retrieving documents from collection ${collection}.`
     processError(res, error, message)
@@ -339,5 +344,3 @@ exports.findAll = async (req, res) => {
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d);
 }
-
-
