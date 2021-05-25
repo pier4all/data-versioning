@@ -24,7 +24,7 @@ exports.cloneSchema = (schema, mongoose) => {
 
 exports.isWritable = (field) => {
     /* JCS: simpler
-    !![c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].find(
+    ![c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].find(
         key => key === field
     )
     */
