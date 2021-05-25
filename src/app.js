@@ -18,8 +18,8 @@ function build(opts={}) {
     })
 
     // define routes
-    require("./api/crud.routes")(app);
-    require("./api/query.routes")(app);
+    require("./api/crud.routes")(app)
+    require("./api/query.routes")(app)
 
     return app
 }

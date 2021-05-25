@@ -1,15 +1,15 @@
 
 const util = require('../versioning/util')
 const c = require('../versioning/constants')
-var chalk = require('chalk');
+var chalk = require('chalk')
 mongoose = require('mongoose')
 
 const { processError } = require('./error')
 
-const fs = require('fs');
+const fs = require('fs')
 /* JCS: use 'const' and 'let', not 'var' */
-var path = require('path');
-const NS_PER_SEC = 1e9;
+var path = require('path')
+const NS_PER_SEC = 1e9
 
 // output path
 var report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
@@ -26,30 +26,30 @@ exports.create = async (req, res) => {
   try {
 
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // Create an Model
-    const document = new Model(req.body);
+    const document = new Model(req.body)
 
     var bytesize = Buffer.from(JSON.stringify(document)).length
 
     // Save Customer in the database
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     await document.save()
 
     // log timer (milliseconds)
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-    res.status(201).send(document);
+    res.status(201).send(document)
 
   } catch (error) {
     const message = `Error creating a document in the collection ${collection}.`
     processError(res, error, message)
-  };
+  }
 }
 
 /* JCS: function too long, identify reusability */
@@ -64,39 +64,39 @@ exports.update = async (req, res) => {
     console.log(chalk.cyan("crud.controller.update: called update"))
 
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // Validate request
     if (!req.body) {
-      return res.status(400).send({ message: "Data to update can not be empty" });
+      return res.status(400).send({ message: "Data to update can not be empty" })
     }
 
-    version = req.params.version;
+    version = req.params.version
 
     if (!util.isValidVersion(version)) {
-      console.error("Bad version provided");
+      console.error("Bad version provided")
       res
           .status(400)
-          .send({ message: "Invalid version provided " + version });
-      return;
+          .send({ message: "Invalid version provided " + version })
+      return
     }
 
     // Get the id
-    id = req.params.id;
+    id = req.params.id
 
     // Find Customer in the database
     let document = await Model.findById(id)
 
     if (!document) {
-      res.status(404).send({ message: "Not found document with id " + id });
+      res.status(404).send({ message: "Not found document with id " + id })
       return
     }
 
-    version = parseInt(version);
+    version = parseInt(version)
 
     if (document._version != version) {
-      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`});
+      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
       return
     }
 
@@ -108,7 +108,7 @@ exports.update = async (req, res) => {
             document[key] = req.body[key]
           } else {
             // TODO: consider returning a 400
-            if (req.body[key] != document[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ));
+            if (req.body[key] != document[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ))
           }
         }
     }
@@ -116,11 +116,11 @@ exports.update = async (req, res) => {
     var bytesize = Buffer.from(JSON.stringify(document)).length
 
     // start timer
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     // start transaction
-    session = await mongoose.startSession();
-    session.startTransaction();
+    session = await mongoose.startSession()
+    session.startTransaction()
 
     // store _session in document
     document[c.SESSION] = session
@@ -128,23 +128,23 @@ exports.update = async (req, res) => {
     await document.save({session})
 
     // commit transaction
-    await session.commitTransaction();
+    await session.commitTransaction()
 
     // log timer
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-    session.endSession();
+    session.endSession()
     console.log(chalk.greenBright("-- commit transaction --"))
 
     // return result
-    res.status(200).send(document);
+    res.status(200).send(document)
     // TODO consider alternative status 204 with no data
 
   } catch(error) {
     if (session) {
-      session.endSession();
+      session.endSession()
       console.log(chalk.redBright("-- ABORT transaction --"))
     }
 
@@ -164,17 +164,17 @@ exports.delete = async (req, res) => {
   try {
 
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
      // Get the id
-    id = req.params.id;
+    id = req.params.id
     console.log(chalk.blue(id))
 
     // Delete Customer in the database
     let document = await Model.findById(id)
     if (!document)
-        res.status(404).send({ message: "Not found document with id " + id });
+        res.status(404).send({ message: "Not found document with id " + id })
     else {
       // set the deletion info
       document[c.DELETION] = req.body || {}
@@ -182,11 +182,11 @@ exports.delete = async (req, res) => {
       var bytesize = Buffer.from(JSON.stringify(document)).length
 
       // start timer
-      var start = process.hrtime();
+      var start = process.hrtime()
 
       // start transaction
-      session = await mongoose.startSession();
-      session.startTransaction();
+      session = await mongoose.startSession()
+      session.startTransaction()
 
       // store _session in document
       document[c.SESSION] = session
@@ -194,23 +194,23 @@ exports.delete = async (req, res) => {
       let data = await document.remove({session})    
 
       // commit transaction
-      await session.commitTransaction();
+      await session.commitTransaction()
 
       // log timer
-      var diff = process.hrtime(start);
+      var diff = process.hrtime(start)
       var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
       fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-      res.status(200).send(data);
+      res.status(200).send(data)
       // alternative status 204 with no data
 
-      session.endSession();
+      session.endSession()
       console.log(chalk.greenBright("-- commit transaction --"))
 
     }
   } catch(error) {
     if (session) {
-      session.endSession();
+      session.endSession()
       console.log(chalk.redBright("-- ABORT transaction --"))
     }
     const message = `Error deleting document ${id} in the collection ${collection}.`
@@ -230,11 +230,11 @@ exports.findValidVersion = async(req, res) => {
   try {
 
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // Get request parameters
-    id = req.params.id;
+    id = req.params.id
 
     var log_tag = "_NOW"
 
@@ -247,32 +247,32 @@ exports.findValidVersion = async(req, res) => {
     }
 
     if (!isValidDate(date)) {
-      console.error("Bad date provided");
+      console.error("Bad date provided")
       res
           .status(400)
-          .send({ message: "Invalid date provided " + req.query.date });
-      return;
+          .send({ message: "Invalid date provided " + req.query.date })
+      return
     }
 
     // start timer
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     let document = await Model.findValidVersion(id, date, Model)
 
     // log timer
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     if (document) fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-    if (!document) res.status(404).send({ message: "Not found document with id " + id });
-    else res.send(document);
+    if (!document) res.status(404).send({ message: "Not found document with id " + id })
+    else res.send(document)
 
   } catch(error) {
     const message = `Error retrieving document ${id} in the collection ${collection}.`
     processError(res, error, message)
   }
-};
+}
 
 exports.findVersion = async(req, res) => {
   console.log(chalk.cyan("crud.controller: called findVersion"))
@@ -283,65 +283,65 @@ exports.findVersion = async(req, res) => {
 
   try {
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // get query params
-    id = req.params.id;
-    version = req.params.version;
+    id = req.params.id
+    version = req.params.version
 
     if (!util.isValidVersion(version)) {
-      console.error("Bad version provided");
+      console.error("Bad version provided")
       res
           .status(400)
-          .send({ message: "Invalid version provided " + version });
-      return;
+          .send({ message: "Invalid version provided " + version })
+      return
     }
 
     // start timer
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     let document = await Model.findVersion(id, parseInt(version), Model)
 
     // log timer
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var bytesize = Buffer.from(JSON.stringify(document)).length
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     if (document) fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
-    if (!document) res.status(404).send({ message: "Not found document with id " + id });
-    else res.send(document);
+    if (!document) res.status(404).send({ message: "Not found document with id " + id })
+    else res.send(document)
 
   } catch(error) {
     const message = `Error retrieving document ${id} in the collection ${collection}.`
     processError(res, error, message)
   }
-};
+}
 
 exports.findAll = async (req, res) => {
   let collection
   try {
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // get the pagination parameters
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
+    const limit = parseInt(req.query.limit) || 10
+    const offset = parseInt(req.query.offset) || 0
 
     console.log(chalk.cyan("crud.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
 
     let documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
-    if (!documents) res.status(404).send({ message: "Not found" });
-    else res.send(documents);
+    if (!documents) res.status(404).send({ message: "Not found" })
+    else res.send(documents)
 
   } catch (error) {
     const message = `Error retrieving documents from collection ${collection}.`
     processError(res, error, message)
-  };
-};
+  }
+}
 
 function isValidDate(d) {
-  return d instanceof Date && !isNaN(d);
+  return d instanceof Date && !isNaN(d)
 }

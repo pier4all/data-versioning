@@ -1,8 +1,8 @@
-var chalk = require('chalk');
+var chalk = require('chalk')
 var util = require("./util")
 var c = require("./constants")
-var ObjectId = require('mongoose').Types.ObjectId;
-"use strict";
+var ObjectId = require('mongoose').Types.ObjectId
+"use strict"
 
 module.exports = function (schema, options) {
 
@@ -10,13 +10,13 @@ module.exports = function (schema, options) {
     if (typeof (options) == 'string') {
         options = {
             collection: options
-        };
+        }
     }
-    options = options || {};
-    options.collection = options.collection || 'versions';
-    options.logError = options.logError || false;
-    options.mongoose = options.mongoose || require('mongoose');
-    let mongoose = options.mongoose;
+    options = options || {}
+    options.collection = options.collection || 'versions'
+    options.logError = options.logError || false
+    options.mongoose = options.mongoose || require('mongoose')
+    let mongoose = options.mongoose
 
     /* JCS: simpler
     [c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].map(
@@ -27,34 +27,34 @@ module.exports = function (schema, options) {
     */
     // Make sure there's no reserved paths
     if (schema.path(c.VERSION)) {
-        throw Error("Schema can't have a path called \"" + c.VERSION + "\"");
+        throw Error("Schema can't have a path called \"" + c.VERSION + "\"")
     }
     if (schema.path(c.VALIDITY)) {
-        throw Error("Schema can't have a path called \"" + c.VALIDITY + "\"");
+        throw Error("Schema can't have a path called \"" + c.VALIDITY + "\"")
     }
     if (schema.path(c.EDITOR)) {
-        throw Error("Schema can't have a path called \"" + c.EDITOR + "\"");
+        throw Error("Schema can't have a path called \"" + c.EDITOR + "\"")
     }
     if (schema.path(c.DELETER)) {
-        throw Error("Schema can't have a path called \"" + c.DELETER + "\"");
+        throw Error("Schema can't have a path called \"" + c.DELETER + "\"")
     }
     if (schema.path(c.EDITION)) {
-        throw Error("Schema can't have a path called \"" + c.EDITION + "\"");
+        throw Error("Schema can't have a path called \"" + c.EDITION + "\"")
     }
     if (schema.path(c.DELETION)) {
-        throw Error("Schema can't have a path called \"" + c.DELETION + "\"");
+        throw Error("Schema can't have a path called \"" + c.DELETION + "\"")
     }
     if (schema.path(c.SESSION)) {
-        throw Error("Schema can't have a path called \"" + c.SESSION + "\"");
+        throw Error("Schema can't have a path called \"" + c.SESSION + "\"")
     }
 
     // create the versioned schema
-    let versionedSchema = util.cloneSchema(schema, mongoose);
+    let versionedSchema = util.cloneSchema(schema, mongoose)
 
     // Copy schema options in the versioned schema
     for (var key in options) {
         if (options.hasOwnProperty(key)) {
-            versionedSchema.set(key, options[key]);
+            versionedSchema.set(key, options[key])
         }
     }
 
@@ -87,14 +87,14 @@ module.exports = function (schema, options) {
 
     // Add Custom fields
     schema.add(validityField)
-    schema.add(versionField);
-    schema.add(editorField);
-    schema.add(deleterField);
+    schema.add(versionField)
+    schema.add(editorField)
+    schema.add(deleterField)
 
-    versionedSchema.add(versionedIdField);
-    versionedSchema.add(versionedValidityField);
-    versionedSchema.add(editorField);
-    versionedSchema.add(deleterField);
+    versionedSchema.add(versionedIdField)
+    versionedSchema.add(versionedValidityField)
+    versionedSchema.add(editorField)
+    versionedSchema.add(deleterField)
 
     // add index to versioning (id, validity),
     const validity_end = c.VALIDITY + ".end"
@@ -109,11 +109,11 @@ module.exports = function (schema, options) {
     // TODO: check if it worths to add (id, version), (id, validity) to mail collection
 
     // Turn off internal versioning, we don't need this since we version on everything
-    schema.set("versionKey", false);
-    versionedSchema.set("versionKey", false);
+    schema.set("versionKey", false)
+    versionedSchema.set("versionKey", false)
 
     // Add reference to model to original schema
-    schema.statics.VersionedModel = mongoose.model(options.collection, versionedSchema);
+    schema.statics.VersionedModel = mongoose.model(options.collection, versionedSchema)
 
     // Add special find by id and validity date that includes versioning
     schema.statics.findValidVersion = async (id, date, model) => {
@@ -145,7 +145,7 @@ module.exports = function (schema, options) {
 
         let version = await versionedModel.findOne(query)
         return version
-    };
+    }
 
     // Add special find by id and version number that includes versioning
     schema.statics.findVersion = async (id, version, model) => {
@@ -173,39 +173,39 @@ module.exports = function (schema, options) {
 
         let document = await versionedModel.findOne(query)
         return document
-    };
+    }
 
     schema.pre('save', async function (next) {
 
         if (this.isNew) {
-            this[c.VERSION] = 1;
-            return next();
+            this[c.VERSION] = 1
+            return next()
         }
 
         // get the transaction session
         const session = {session: this._session}
         delete this._session
 
-        let baseVersion = this[c.VERSION];
+        let baseVersion = this[c.VERSION]
         // load the base version
         let base = await this.collection
             .findOne({ [c.ID]: this[c.ID] })
             .then((foundBase) => {
             if (foundBase === null) {
-                let err = new Error('document to update not found in collection');
-                throw (err);
+                let err = new Error('document to update not found in collection')
+                throw (err)
             }
-            return foundBase;});
+            return foundBase})
 
-        let bV = base[c.VERSION];
+        let bV = base[c.VERSION]
         if (baseVersion !== bV) {
-            let err = new Error('modified and base versions do not match');
-            throw (err);
+            let err = new Error('modified and base versions do not match')
+            throw (err)
         }
-        let clone = JSON.parse(JSON.stringify(base));
+        let clone = JSON.parse(JSON.stringify(base))
 
         // Build Vermongo historical ID
-        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
+        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] }
 
         // Set validity to end now for versioned and to start now for current
         const now = new Date()
@@ -219,17 +219,17 @@ module.exports = function (schema, options) {
         this[c.VALIDITY] = { "start": now }
 
         // Increment version number
-        this[c.VERSION] = this[c.VERSION] + 1;
+        this[c.VERSION] = this[c.VERSION] + 1
 
         // Save versioned document
         //console.log(chalk.magentaBright(`versioning.save: ${JSON.stringify(clone, null, 2)}`))
         var versionedDoc = new schema.statics.VersionedModel(clone)
 
-        await versionedDoc.save(session);
+        await versionedDoc.save(session)
 
-        next();
-        return null;
-    });
+        next()
+        return null
+    })
 
     schema.pre('remove', async function (next) {
 
@@ -241,9 +241,9 @@ module.exports = function (schema, options) {
         let delete_info = this[c.DELETION] || {}
         delete this[c.DELETION]
 
-        let clone = JSON.parse(JSON.stringify(this.toObject()));
+        let clone = JSON.parse(JSON.stringify(this.toObject()))
 
-        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] };
+        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] }
 
         const now = new Date()
         const start = this[c.VALIDITY]["start"]
@@ -251,17 +251,17 @@ module.exports = function (schema, options) {
             "start": start,
             "end": now
         }
-        clone[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER;
+        clone[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER
 
         await new schema.statics.VersionedModel(clone).save(session)
 
-        next();
-        return null;
-    });
+        next()
+        return null
+    })
 
     // TODO?
-    schema.pre('update', function (next) { });
-    schema.pre('findOneAndUpdate', function (next) { });
-    schema.pre('findOneAndRemove', function (next) { });
+    schema.pre('update', function (next) { })
+    schema.pre('findOneAndUpdate', function (next) { })
+    schema.pre('findOneAndRemove', function (next) { })
 
-};
+}

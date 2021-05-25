@@ -40,7 +40,7 @@ const start = async () => {
 /* JCS: error in reference */
 const endConnection = async() => {
   await db.end() //database.end()
-  console.log("** finished ** " );
-};
+  console.log("** finished ** " )
+}
 
 start()

@@ -2,20 +2,20 @@
 
 const tap = require('tap')
 const build = require('../../src/app')
-var chalk = require('chalk');
+var chalk = require('chalk')
 var d = require('../fixtures/db_seed')
 
-const Customer = require("../../src/models/customer");
+const Customer = require("../../src/models/customer")
 
-const mongoose = require('mongoose');
-mongoose.Promise = require('bluebird');
+const mongoose = require('mongoose')
+mongoose.Promise = require('bluebird')
 
 // start in memory server: Use the version 6.9.5
-const { MongoMemoryReplSet } = require( 'mongodb-memory-server' );
+const { MongoMemoryReplSet } = require( 'mongodb-memory-server' )
 
 const replSet = new MongoMemoryReplSet({
     replSet: { storageEngine: 'wiredTiger' }
-});
+})
 
 tap.test('init the db', async t => {
 
@@ -27,10 +27,10 @@ tap.test('init the db', async t => {
         useUnifiedTopology: true, 
         useNewUrlParser: true, 
         useFindAndModify: false
-    };
+    }
 
-    await mongoose.connect(mongoUri, mongooseOpts);
-    console.log(chalk.bold.green(`mongoose successfully connected to ${mongoUri}`));
+    await mongoose.connect(mongoUri, mongooseOpts)
+    console.log(chalk.bold.green(`mongoose successfully connected to ${mongoUri}`))
     t.end()
 
 })
@@ -123,7 +123,7 @@ tap.test('delete customer', async t => {
 }) 
 
 tap.teardown(async function() { 
-    mongoose.disconnect();
-    await replSet.stop();
-    console.log(chalk.bold.red('MongoDB disconnected'));
-});
+    mongoose.disconnect()
+    await replSet.stop()
+    console.log(chalk.bold.red('MongoDB disconnected'))
+})

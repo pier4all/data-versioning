@@ -1,13 +1,13 @@
 
 const util = require('../versioning/util')
-var chalk = require('chalk');
+var chalk = require('chalk')
 mongoose = require('mongoose')
 
 const { processError } = require('./error')
 
-const fs = require('fs');
-var path = require('path');
-const NS_PER_SEC = 1e9;
+const fs = require('fs')
+var path = require('path')
+const NS_PER_SEC = 1e9
 
 // output path
 var report_file = 'time_report_query_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
@@ -18,25 +18,25 @@ exports.find = async (req, res) => {
   let collection
   try {
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // get the pagination parameters
     let query, projection, sort, limit, offset
     try {
-      query = paramList2object(req.query.query) || {};
-      projection = valuesAsInt(paramList2object(req.query.projection)) || {};
-      sort = valuesAsInt(paramList2object(req.query.sort)) || { _id: 1 };
+      query = paramList2object(req.query.query) || {}
+      projection = valuesAsInt(paramList2object(req.query.projection)) || {}
+      sort = valuesAsInt(paramList2object(req.query.sort)) || { _id: 1 }
 
-      limit = parseInt(req.query.limit) || 10;
-      offset = parseInt(req.query.offset) || 0;
+      limit = parseInt(req.query.limit) || 10
+      offset = parseInt(req.query.offset) || 0
 
     } catch (error) {
-        var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message);
+        var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message)
         parseError.code = "BAD_PARAMETER"
         const message = "Invalid request parameter"
         processError(res, parseError, message)
-        return;
+        return
     }
 
     console.log(chalk.cyan("query.controller.find: collection=" + collection + ", query=" + JSON.stringify(query)
@@ -44,42 +44,42 @@ exports.find = async (req, res) => {
                                               + ", limit=" + limit + ", offset=" + offset))
 
     // start logging timer
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     let documents = await Model.find(query, projection, { sort: sort }).skip(offset).limit(limit)
 
     // log timer (milliseconds)
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['FIND', collection, documents.length, new Date().toISOString(), time].join(sep) + '\n')
 
-    if (!documents) res.status(404).send({ message: "Not found" });
-    else res.send(documents);
+    if (!documents) res.status(404).send({ message: "Not found" })
+    else res.send(documents)
 
   } catch (error) {
     const message = `Error finding documents in collection ${collection}.`
     processError(res, error, message)
-  };
-};
+  }
+}
 
 exports.aggregate = async (req, res) => {
   let collection
   try {
     // Get the collection
-    collection = req.params.collection;
-    const Model = require(`../models/${collection}`);
+    collection = req.params.collection
+    const Model = require(`../models/${collection}`)
 
     // get the pagination parameters
     let limit, offset
     try {
-      limit = parseInt(req.query.limit) || 10;
-      offset = parseInt(req.query.offset) || 0;
+      limit = parseInt(req.query.limit) || 10
+      offset = parseInt(req.query.offset) || 0
     } catch (error) {
-      var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message);
+      var parseError = new Error("Error parsing parameter: " + error.name + ": " + error.message)
       parseError.code = "BAD_PARAMETER"
       const message = "Invalid request parameter"
       processError(res, parseError, message)
-      return;
+      return
     }
 
     let pipeline = req.body
@@ -88,23 +88,23 @@ exports.aggregate = async (req, res) => {
                                                    + ", pipeline=" + JSON.stringify(pipeline) ))
 
     // start logging timer
-    var start = process.hrtime();
+    var start = process.hrtime()
 
     let documents = await Model.aggregate(pipeline).skip(offset).limit(limit)
 
     // log timer (milliseconds)
-    var diff = process.hrtime(start);
+    var diff = process.hrtime(start)
     var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['FIND', collection, documents.length, new Date().toISOString(), time].join(sep) + '\n')
 
-    if (!documents) res.status(404).send({ message: "Not found" });
-    else res.send(documents);
+    if (!documents) res.status(404).send({ message: "Not found" })
+    else res.send(documents)
 
   } catch (error) {
     const message = `Error finding documents in collection ${collection}.`
     processError(res, error, message)
-  };
-};
+  }
+}
 
 /* JCS: use 'const' and 'let' */
 paramList2object = (text) => {

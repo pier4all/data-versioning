@@ -1,13 +1,13 @@
 // imports
-var mongoose = require('mongoose');
-var uuid = require('node-uuid');
-var versioning = require('../versioning/versioning');
-mongoose.Promise = require('bluebird');
+var mongoose = require('mongoose')
+var uuid = require('node-uuid')
+var versioning = require('../versioning/versioning')
+mongoose.Promise = require('bluebird')
 
 const NAME = "owner"
 
 // schema definition
-var Schema = mongoose.Schema;
+var Schema = mongoose.Schema
 
 let ownersSchema = new Schema({
   name : { type : String, required : true },
@@ -19,9 +19,9 @@ let ownersSchema = new Schema({
   uuid: { type : String, required : true, default: uuid.v4 },
   taxType : { type : String },
   currency : { type : String, default: "CHF" }
-});
+})
 
 // TODO set indexes manually after adding option { autoIndex: false }
-ownersSchema.plugin(versioning, NAME + "s.versioning");
+ownersSchema.plugin(versioning, NAME + "s.versioning")
 
-module.exports = mongoose.model(NAME, ownersSchema);
+module.exports = mongoose.model(NAME, ownersSchema)

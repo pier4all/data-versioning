@@ -1,21 +1,21 @@
 // imports
-var mongoose = require('mongoose');
-var versioning = require('../versioning/versioning');
-mongoose.Promise = require('bluebird');
+var mongoose = require('mongoose')
+var versioning = require('../versioning/versioning')
+mongoose.Promise = require('bluebird')
 
 const NAME = "customer"
 
 // schema definition
-var Schema = mongoose.Schema;
+var Schema = mongoose.Schema
 
 let customerSchema = new Schema({
   custno: { type: Number, required: true, unique: true },
   name: { type: String, required: true },
   email : { type : String, required: true, unique: true },
   language: { type: String, required: true, default: "DE" }
-});
+})
 
 // TODO set indexes manually after adding option { autoIndex: false }
-customerSchema.plugin(versioning, NAME + "s.versioning");
+customerSchema.plugin(versioning, NAME + "s.versioning")
 
-module.exports = mongoose.model(NAME, customerSchema);
+module.exports = mongoose.model(NAME, customerSchema)

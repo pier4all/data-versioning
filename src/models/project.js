@@ -1,13 +1,13 @@
 // imports
-var mongoose = require('mongoose');
-var versioning = require('../versioning/versioning');
-mongoose.Promise = require('bluebird');
+var mongoose = require('mongoose')
+var versioning = require('../versioning/versioning')
+mongoose.Promise = require('bluebird')
 
 const NAME = "project"
 const DB_NAME = mongoose.connection.name
 
 // schema definition
-var Schema = mongoose.Schema;
+var Schema = mongoose.Schema
 
 let projectSchema = new Schema({
   prono: { type: Number, required: true, unique: true },
@@ -22,9 +22,9 @@ let projectSchema = new Schema({
     "$ref": {type: String, default: "employees" }, 
     "$db": {type: String, default: DB_NAME }
     }
-});
+})
 
 // TODO set indexes manually after adding option { autoIndex: false }
-projectSchema.plugin(versioning, NAME + "s.versioning");
+projectSchema.plugin(versioning, NAME + "s.versioning")
 
-module.exports = mongoose.model(NAME, projectSchema);
+module.exports = mongoose.model(NAME, projectSchema)

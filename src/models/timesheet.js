@@ -1,13 +1,13 @@
 // imports
-var mongoose = require('mongoose');
-var versioning = require('../versioning/versioning');
-mongoose.Promise = require('bluebird');
+var mongoose = require('mongoose')
+var versioning = require('../versioning/versioning')
+mongoose.Promise = require('bluebird')
 
 const NAME = "timesheet"
 const DB_NAME = mongoose.connection.name
 
 // schema definition
-var Schema = mongoose.Schema;
+var Schema = mongoose.Schema
 
 let timesheetSchema = new Schema({
   "ref-project": { 
@@ -27,9 +27,9 @@ let timesheetSchema = new Schema({
   },
   date: { type: Date, required: true },
   quantity: { type: Number }
-});
+})
 
 // TODO set indexes manually after adding option { autoIndex: false }
-timesheetSchema.plugin(versioning, NAME + "s.versioning");
+timesheetSchema.plugin(versioning, NAME + "s.versioning")
 
-module.exports = mongoose.model(NAME, timesheetSchema);
+module.exports = mongoose.model(NAME, timesheetSchema)
