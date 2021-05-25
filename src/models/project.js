@@ -1,13 +1,13 @@
 // imports
-var mongoose = require('mongoose')
-var versioning = require('../versioning/versioning')
+const mongoose = require('mongoose')
+const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
 
 const NAME = "project"
 const DB_NAME = mongoose.connection.name
 
 // schema definition
-var Schema = mongoose.Schema
+let Schema = mongoose.Schema
 
 let projectSchema = new Schema({
   prono: { type: Number, required: true, unique: true },

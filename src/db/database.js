@@ -1,7 +1,6 @@
-let mongoose = require('mongoose')
+const mongoose = require('mongoose')
 mongoose.Promise = require('bluebird')
-let chalk = require('chalk')
-
+const chalk = require('chalk')
 
 exports.connect =  async (mongodb_uri) => {
     console.log(chalk.yellow("Database.connect: DB connecting (" + mongodb_uri + ") ... "))

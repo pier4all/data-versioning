@@ -2,8 +2,8 @@
 
 const tap = require('tap')
 const build = require('../../src/app')
-var chalk = require('chalk')
-var d = require('../fixtures/db_seed')
+const chalk = require('chalk')
+const db_seed = require('../fixtures/db_seed')
 
 const Customer = require("../../src/models/customer")
 
@@ -50,7 +50,7 @@ tap.test('create customer 1', async t => {
     const response = await app.inject({
         method: 'POST',
         url: '/crud/customer',
-        body: d.customerOne
+        body: db_seed.customerOne
     })
     t.equal(response.statusCode, 201, 'returns a status code of 200')
 }) 
@@ -60,7 +60,7 @@ tap.test('create customer 2', async t => {
     const response = await app.inject({
         method: 'POST',
         url: '/crud/customer',
-        body: d.customerTwo
+        body: db_seed.customerTwo
     })
     t.equal(response.statusCode, 201, 'returns a status code of 200')
 }) 
@@ -82,7 +82,7 @@ tap.test('edit customer', async t => {
     const changes = { "language": "DE" }
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${d.customerOne._id}/1`,
+        url: `/crud/customer/${db_seed.customerOne._id}/1`,
         body: changes
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
@@ -94,7 +94,7 @@ tap.test('requests old version customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${d.customerOne._id}`
+        url: `/crud/customer/${db_seed.customerOne._id}`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     t.equal(2, JSON.parse(response.body)._version)
@@ -105,7 +105,7 @@ tap.test('requests current customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${d.customerOne._id}/1`
+        url: `/crud/customer/${db_seed.customerOne._id}/1`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     t.equal(1, JSON.parse(response.body)._version)
@@ -116,7 +116,7 @@ tap.test('delete customer', async t => {
     const app = build()
     const response = await app.inject({
         method: 'DELETE',
-        url: `/crud/customer/${d.customerOne._id}`
+        url: `/crud/customer/${db_seed.customerOne._id}`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     console.log(response.body)

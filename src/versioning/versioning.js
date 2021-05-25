@@ -1,7 +1,7 @@
-var chalk = require('chalk')
-var util = require("./util")
-var c = require("./constants")
-var ObjectId = require('mongoose').Types.ObjectId
+const chalk = require('chalk')
+const util = require("./util")
+const constants = require("./constants")
+const ObjectId = require('mongoose').Types.ObjectId
 "use strict"
 
 module.exports = function (schema, options) {
@@ -18,72 +18,46 @@ module.exports = function (schema, options) {
     options.mongoose = options.mongoose || require('mongoose')
     let mongoose = options.mongoose
 
-    /* JCS: simpler
-    [c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].map(
-        key => if (schema.path(key)) throw Error(
-            `Schema can't have a path called "${key}"`
-        )
-    )
-    */
     // Make sure there's no reserved paths
-    if (schema.path(c.VERSION)) {
-        throw Error("Schema can't have a path called \"" + c.VERSION + "\"")
-    }
-    if (schema.path(c.VALIDITY)) {
-        throw Error("Schema can't have a path called \"" + c.VALIDITY + "\"")
-    }
-    if (schema.path(c.EDITOR)) {
-        throw Error("Schema can't have a path called \"" + c.EDITOR + "\"")
-    }
-    if (schema.path(c.DELETER)) {
-        throw Error("Schema can't have a path called \"" + c.DELETER + "\"")
-    }
-    if (schema.path(c.EDITION)) {
-        throw Error("Schema can't have a path called \"" + c.EDITION + "\"")
-    }
-    if (schema.path(c.DELETION)) {
-        throw Error("Schema can't have a path called \"" + c.DELETION + "\"")
-    }
-    if (schema.path(c.SESSION)) {
-        throw Error("Schema can't have a path called \"" + c.SESSION + "\"")
-    }
-
+    constants.RESERVED_FIELDS.map(
+        key =>  { if (schema.path(key)) throw Error(`Schema can't have a path called "${key}"`) }
+    )
+    
     // create the versioned schema
     let versionedSchema = util.cloneSchema(schema, mongoose)
 
     // Copy schema options in the versioned schema
     for (var key in options) {
-        if (options.hasOwnProperty(key)) {
+        if (options.hasOwnProperty(key))
             versionedSchema.set(key, options[key])
-        }
     }
 
     // Define Custom fields
     // TODO: validate end should be later than start
     let validityField = {}
-    validityField[c.VALIDITY] = {
+    validityField[constants.VALIDITY] = {
         start: { type: Date, required: true, default: Date.now },
         end: { type: Date, required: false }
     }
 
     let versionedValidityField = {}
-    versionedValidityField[c.VALIDITY] = {
+    versionedValidityField[constants.VALIDITY] = {
         start: { type: Date, required: true },
         end: { type: Date, required: true}
     }
 
     let versionField = {}
-    versionField[c.VERSION] = { type: Number, required: true, default: 0, select: true }
+    versionField[constants.VERSION] = { type: Number, required: true, default: 0, select: true }
 
     let versionedIdField = {}
-    versionedIdField[c.ID] = mongoose.Schema.Types.Mixed
-    versionedIdField[c.VERSION] = versionField[c.VERSION]
+    versionedIdField[constants.ID] = mongoose.Schema.Types.Mixed
+    versionedIdField[constants.VERSION] = versionField[constants.VERSION]
 
     let editorField = {}
-    editorField[c.EDITOR] = { type: String, required: true, default: c.DEFAULT_EDITOR }
+    editorField[constants.EDITOR] = { type: String, required: true, default: constants.DEFAULT_EDITOR }
 
     let deleterField = {}
-    deleterField[c.DELETER] = { type: String, required: false}
+    deleterField[constants.DELETER] = { type: String, required: false}
 
     // Add Custom fields
     schema.add(validityField)
@@ -97,11 +71,11 @@ module.exports = function (schema, options) {
     versionedSchema.add(deleterField)
 
     // add index to versioning (id, validity),
-    const validity_end = c.VALIDITY + ".end"
-    const validity_start = c.VALIDITY + ".start"
+    const validity_end = constants.VALIDITY + ".end"
+    const validity_start = constants.VALIDITY + ".start"
 
     var versionedValidityIndex = {}
-    versionedValidityIndex[c.ID + '.' + c.ID] = 1
+    versionedValidityIndex[constants.ID + '.' + constants.ID] = 1
     versionedValidityIndex[validity_start] = 1
     versionedValidityIndex[validity_end] = 1
     versionedSchema.index(versionedValidityIndex)
@@ -120,8 +94,8 @@ module.exports = function (schema, options) {
 
         // 1. check if in current collection is valid
         // TODO find out why 'this.findById' does not work
-        const validity_end = c.VALIDITY + ".end"
-        const validity_start = c.VALIDITY + ".start"
+        const validity_end = constants.VALIDITY + ".end"
+        const validity_start = constants.VALIDITY + ".start"
 
         let query = { "_id": ObjectId(id)}
         query[validity_start] = { $lte: date }
@@ -129,15 +103,14 @@ module.exports = function (schema, options) {
         //console.log(chalk.magenta(JSON.stringify(query)))
 
         let current = await model.findOne(query)
-        if (current) {
-            { return current }
-        }
+        if (current) 
+            return current 
 
         // 2. if not, check versioned collection
         // TODO: consider deleted documents if they have a validity
         let versionedModel = schema.statics.VersionedModel
         query = {}
-        query[c.ID + "." + c.ID] = ObjectId(id)
+        query[constants.ID + "." + constants.ID] = ObjectId(id)
         query[validity_start] = { $lte: date }
         query[validity_end] = { $gt: date }
 
@@ -153,23 +126,22 @@ module.exports = function (schema, options) {
         // 1. check if version is the main collection
         // TODO find out why 'this.findById' does not work
         let query = {}
-        query[c.ID] = ObjectId(id)
-        query[c.VERSION] = version
+        query[constants.ID] = ObjectId(id)
+        query[constants.VERSION] = version
 
         let current = await model.findOne(query)
-        if (current) {
-            { return current }
-        }
+        if (current) 
+            return current 
 
         // 2. if not, check versioned collection
         // TODO: consider deleted documents and if we allow negative version numbers
         // we could check in two version fields
         let versionedModel = schema.statics.VersionedModel
         query = {}
-        var versionedId = {}
-        versionedId[c.ID] = ObjectId(id)
-        versionedId[c.VERSION] = version
-        query[c.ID] = versionedId
+        let versionedId = {}
+        versionedId[constants.ID] = ObjectId(id)
+        versionedId[constants.VERSION] = version
+        query[constants.ID] = versionedId
 
         let document = await versionedModel.findOne(query)
         return document
@@ -178,7 +150,7 @@ module.exports = function (schema, options) {
     schema.pre('save', async function (next) {
 
         if (this.isNew) {
-            this[c.VERSION] = 1
+            this[constants.VERSION] = 1
             return next()
         }
 
@@ -186,10 +158,10 @@ module.exports = function (schema, options) {
         const session = {session: this._session}
         delete this._session
 
-        let baseVersion = this[c.VERSION]
+        let baseVersion = this[constants.VERSION]
         // load the base version
         let base = await this.collection
-            .findOne({ [c.ID]: this[c.ID] })
+            .findOne({ [constants.ID]: this[constants.ID] })
             .then((foundBase) => {
             if (foundBase === null) {
                 let err = new Error('document to update not found in collection')
@@ -197,7 +169,7 @@ module.exports = function (schema, options) {
             }
             return foundBase})
 
-        let bV = base[c.VERSION]
+        let bV = base[constants.VERSION]
         if (baseVersion !== bV) {
             let err = new Error('modified and base versions do not match')
             throw (err)
@@ -205,21 +177,21 @@ module.exports = function (schema, options) {
         let clone = JSON.parse(JSON.stringify(base))
 
         // Build Vermongo historical ID
-        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] }
+        clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
 
         // Set validity to end now for versioned and to start now for current
         const now = new Date()
-        const start = base[c.VALIDITY]["start"]
+        const start = base[constants.VALIDITY]["start"]
 
-        clone[c.VALIDITY] = {
+        clone[constants.VALIDITY] = {
             "start": start,
             "end": now
         }
 
-        this[c.VALIDITY] = { "start": now }
+        this[constants.VALIDITY] = { "start": now }
 
         // Increment version number
-        this[c.VERSION] = this[c.VERSION] + 1
+        this[constants.VERSION] = this[constants.VERSION] + 1
 
         // Save versioned document
         //console.log(chalk.magentaBright(`versioning.save: ${JSON.stringify(clone, null, 2)}`))
@@ -238,20 +210,20 @@ module.exports = function (schema, options) {
         delete this._session
 
         // save current version clone in shadow collection
-        let delete_info = this[c.DELETION] || {}
-        delete this[c.DELETION]
+        let delete_info = this[constants.DELETION] || {}
+        delete this[constants.DELETION]
 
         let clone = JSON.parse(JSON.stringify(this.toObject()))
 
-        clone[c.ID] = { [c.ID]: this[c.ID], [c.VERSION]: this[c.VERSION] }
+        clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
 
         const now = new Date()
-        const start = this[c.VALIDITY]["start"]
-        clone[c.VALIDITY] = {
+        const start = this[constants.VALIDITY]["start"]
+        clone[constants.VALIDITY] = {
             "start": start,
             "end": now
         }
-        clone[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER
+        clone[constants.DELETER] = delete_info[constants.DELETER] || constants.DEFAULT_DELETER
 
         await new schema.statics.VersionedModel(clone).save(session)
 

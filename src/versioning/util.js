@@ -1,10 +1,10 @@
 /* JCS: name the parameter */
-var c = require("./constants")
+const constants = require("./constants")
 
 exports.cloneSchema = (schema, mongoose) => {
     let clonedSchema = new mongoose.Schema()
     schema.eachPath(function (path, type) {
-        if (path === c.ID) {
+        if (path === constants.ID) {
             return
         }
         // TODO: find a better way to clone schema
@@ -17,22 +17,16 @@ exports.cloneSchema = (schema, mongoose) => {
         // if (path !== c.VERSION) {
         //     clonedPath[path].required = false
         // }
+
         clonedSchema.add(clonedPath)
     })
     return clonedSchema
 }
 
 exports.isWritable = (field) => {
-    /* JCS: simpler
-    ![c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION].find(
+    return !constants.RESERVED_FIELDS.find(
         key => key === field
     )
-    */
-
-    for (let key of [c.DELETER, c.EDITOR, c.ID, c.VERSION, c.VALIDITY, c.SESSION, c.DELETION]) {
-        if (key == field) return false
-    }
-    return true
 }
 
 exports.isValidVersion = (v) => {

@@ -1,5 +1,5 @@
 module.exports = fastify => {
-    const controller = require("../controllers/query.controller.js");
+    const controller = require("../controllers/query.controller.js")
 
     // Declare a base route
     fastify.get('/query', async (request, reply) => {
@@ -16,4 +16,4 @@ module.exports = fastify => {
         return controller.aggregate(request, reply)
     })
   
-};
+}

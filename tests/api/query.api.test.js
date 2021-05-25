@@ -2,8 +2,8 @@
 
 const tap = require('tap')
 const build = require('../../src/app')
-var chalk = require('chalk')
-var d = require('../fixtures/db_seed')
+const chalk = require('chalk')
+const db_seed = require('../fixtures/db_seed')
 
 const Customer = require("../../src/models/customer")
 
@@ -33,7 +33,7 @@ tap.test('init the db', async t => {
     console.log(chalk.bold.green(`mongoose successfully connected to ${mongoUri}`))
     t.end()
 
-    await d.initDB(build())
+    await db_seed.initDB(build())
 
 })
 
@@ -69,8 +69,8 @@ tap.test('requests 2 customers in custno descending order', async t => {
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     const customers = JSON.parse(response.body)
     t.equal(2, customers.length)
-    t.equal(d.customerFour.custno, customers[0]['custno'])
-    t.not(d.customerFour.email, customers[0]['email'])
+    t.equal(db_seed.customerFour.custno, customers[0]['custno'])
+    t.not(db_seed.customerFour.email, customers[0]['email'])
 })
 
 tap.test('filter customers by language and sort by email in ascending order', async t => {
@@ -84,7 +84,7 @@ tap.test('filter customers by language and sort by email in ascending order', as
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     const customers = JSON.parse(response.body)
     t.equal(2, customers.length)
-    t.equal(d.customerFour.custno, customers[0]['custno'])
+    t.equal(db_seed.customerFour.custno, customers[0]['custno'])
 })
 
 tap.test('group customers by language and get two in count, language ascending order', async t => {

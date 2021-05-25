@@ -1,19 +1,18 @@
 
 const util = require('../versioning/util')
 const c = require('../versioning/constants')
-var chalk = require('chalk')
+const chalk = require('chalk')
 mongoose = require('mongoose')
 
 const { processError } = require('./error')
 
 const fs = require('fs')
-/* JCS: use 'const' and 'let', not 'var' */
-var path = require('path')
+const path = require('path')
 const NS_PER_SEC = 1e9
 
 // output path
-var report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
-var report = path.join(__dirname, '..', '..', 'output', report_file)
+const report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
+const report = path.join(__dirname, '..', '..', 'output', report_file)
 const sep = '\t'
 
 /* JCS: omit semicolons */
@@ -21,7 +20,7 @@ exports.create = async (req, res) => {
 
   console.log(chalk.cyan("crud.controller.create: called create"))
 
-  var collection = undefined
+  let collection = undefined
 
   try {
 
@@ -32,16 +31,16 @@ exports.create = async (req, res) => {
     // Create an Model
     const document = new Model(req.body)
 
-    var bytesize = Buffer.from(JSON.stringify(document)).length
+    const bytesize = Buffer.from(JSON.stringify(document)).length
 
     // Save Customer in the database
-    var start = process.hrtime()
+    const start = process.hrtime()
 
     await document.save()
 
     // log timer (milliseconds)
-    var diff = process.hrtime(start)
-    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    const diff = process.hrtime(start)
+    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     res.status(201).send(document)
@@ -86,7 +85,7 @@ exports.update = async (req, res) => {
     id = req.params.id
 
     // Find Customer in the database
-    let document = await Model.findById(id)
+    const document = await Model.findById(id)
 
     if (!document) {
       res.status(404).send({ message: "Not found document with id " + id })
@@ -101,8 +100,7 @@ exports.update = async (req, res) => {
     }
 
     // modify the provided fields stkipping the protected ones
-    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body
-    for (var key in req.body) {
+    for (let key in req.body) {
         if (req.body.hasOwnProperty(key)) {
           if (util.isWritable(key)) {
             document[key] = req.body[key]
@@ -113,10 +111,10 @@ exports.update = async (req, res) => {
         }
     }
 
-    var bytesize = Buffer.from(JSON.stringify(document)).length
+    const bytesize = Buffer.from(JSON.stringify(document)).length
 
     // start timer
-    var start = process.hrtime()
+    const start = process.hrtime()
 
     // start transaction
     session = await mongoose.startSession()
@@ -131,8 +129,8 @@ exports.update = async (req, res) => {
     await session.commitTransaction()
 
     // log timer
-    var diff = process.hrtime(start)
-    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    const diff = process.hrtime(start)
+    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     session.endSession()
@@ -179,10 +177,10 @@ exports.delete = async (req, res) => {
       // set the deletion info
       document[c.DELETION] = req.body || {}
 
-      var bytesize = Buffer.from(JSON.stringify(document)).length
+      const bytesize = Buffer.from(JSON.stringify(document)).length
 
       // start timer
-      var start = process.hrtime()
+      const start = process.hrtime()
 
       // start transaction
       session = await mongoose.startSession()
@@ -197,8 +195,8 @@ exports.delete = async (req, res) => {
       await session.commitTransaction()
 
       // log timer
-      var diff = process.hrtime(start)
-      var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+      const diff = process.hrtime(start)
+      const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
       fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
       res.status(200).send(data)
@@ -236,7 +234,7 @@ exports.findValidVersion = async(req, res) => {
     // Get request parameters
     id = req.params.id
 
-    var log_tag = "_NOW"
+    const log_tag = "_NOW"
 
     if(req.query.date) {
       log_tag = "_PAST"
@@ -255,14 +253,14 @@ exports.findValidVersion = async(req, res) => {
     }
 
     // start timer
-    var start = process.hrtime()
+    const start = process.hrtime()
 
     let document = await Model.findValidVersion(id, date, Model)
 
     // log timer
-    var diff = process.hrtime(start)
-    var bytesize = Buffer.from(JSON.stringify(document)).length
-    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    const diff = process.hrtime(start)
+    const bytesize = Buffer.from(JSON.stringify(document)).length
+    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     if (document) fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
@@ -299,14 +297,14 @@ exports.findVersion = async(req, res) => {
     }
 
     // start timer
-    var start = process.hrtime()
+    const start = process.hrtime()
 
-    let document = await Model.findVersion(id, parseInt(version), Model)
+    const document = await Model.findVersion(id, parseInt(version), Model)
 
     // log timer
-    var diff = process.hrtime(start)
-    var bytesize = Buffer.from(JSON.stringify(document)).length
-    var time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+    const diff = process.hrtime(start)
+    const bytesize = Buffer.from(JSON.stringify(document)).length
+    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
     if (document) fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
@@ -331,7 +329,7 @@ exports.findAll = async (req, res) => {
 
     console.log(chalk.cyan("crud.controller.findAll: collection=" + collection +", limit=" + limit + ", offset=" + offset))
 
-    let documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
+    const documents = await Model.find({}, null, { sort: { _id: 1 } }).skip(offset).limit(limit)
 
     if (!documents) res.status(404).send({ message: "Not found" })
     else res.send(documents)

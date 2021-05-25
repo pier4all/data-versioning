@@ -1,5 +1,5 @@
 module.exports = fastify => {
-    const controller = require("../controllers/crud.controller.js");
+    const controller = require("../controllers/crud.controller.js")
 
     // Declare a base route
     fastify.get('/crud', async (request, reply) => {
@@ -36,4 +36,4 @@ module.exports = fastify => {
     return controller.delete(request, reply)
   })
 
-};
+}

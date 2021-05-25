@@ -1,6 +1,6 @@
 // entry point
 
-var db = require('./db/database')
+const db = require('./db/database')
 
 // read credentials
 const result = require('dotenv').config({ path: 'config/.env' })
@@ -39,7 +39,7 @@ const start = async () => {
 
 /* JCS: error in reference */
 const endConnection = async() => {
-  await db.end() //database.end()
+  await db.end()
   console.log("** finished ** " )
 }
 

@@ -9,7 +9,7 @@ function build(opts={}) {
     // content parser
     app.addContentTypeParser('application/json', { parseAs: 'string' }, function (req, body, done) {
         try {
-            var json = JSON.parse(body)
+            const json = JSON.parse(body)
             done(null, json)
         } catch (err) {
             err.statusCode = 400

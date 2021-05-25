@@ -1,6 +1,6 @@
 const util = require('../../src/versioning/util')
 const mongoose = require('mongoose')
-var Schema = mongoose.Schema
+let Schema = mongoose.Schema
 
 
 // test util

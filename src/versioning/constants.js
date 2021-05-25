@@ -11,6 +11,15 @@ const DEFAULT_DELETER = "deleter"
 const EDITION = "_edition"
 const SESSION = "_session"
 
+const RESERVED_FIELDS = [
+    VERSION,
+    VALIDITY,
+    EDITOR,
+    DELETER,
+    DELETION,
+    EDITION,
+    SESSION ]
+
 module.exports = {
     VERSION,
     ID,
@@ -21,5 +30,6 @@ module.exports = {
     DEFAULT_DELETER,
     DELETION,
     EDITION,
-    SESSION
+    SESSION, 
+    RESERVED_FIELDS
 }

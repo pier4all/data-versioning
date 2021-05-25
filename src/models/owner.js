@@ -1,13 +1,13 @@
 // imports
-var mongoose = require('mongoose')
-var uuid = require('node-uuid')
-var versioning = require('../versioning/versioning')
+const mongoose = require('mongoose')
+const uuid = require('node-uuid')
+const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
 
 const NAME = "owner"
 
 // schema definition
-var Schema = mongoose.Schema
+let Schema = mongoose.Schema
 
 let ownersSchema = new Schema({
   name : { type : String, required : true },

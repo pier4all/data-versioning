@@ -1,4 +1,4 @@
-var chalk = require('chalk')
+const chalk = require('chalk')
 
 const versioning = require('../../src/versioning/versioning')
 const util = require('../../src/versioning/util')
@@ -6,7 +6,7 @@ const c = require('../../src/versioning/constants')
 
 const mongoose = require('mongoose')
 mongoose.Promise = require('bluebird')
-var Schema = mongoose.Schema
+let Schema = mongoose.Schema
 
 // start in memory server
 const { MongoMemoryServer } = require( 'mongodb-memory-server' )
@@ -65,7 +65,7 @@ tap.test('create new object', async (t) => {
 })
 
 tap.test('update object', async (childTest) => {
-  var mock = await Mock.findById(mockOne._id)
+  let mock = await Mock.findById(mockOne._id)
   mock.data = "modified"
   mock = await mock.save()  
   childTest.equal(mock[c.VERSION], 2)
@@ -73,13 +73,13 @@ tap.test('update object', async (childTest) => {
 })
 
 tap.test('find current version by number', async (childTest) => {
-  var mock = await Mock.findVersion(mockOne._id, 2, Mock)
+  let mock = await Mock.findVersion(mockOne._id, 2, Mock)
   childTest.isEqual(mock[c.VALIDITY].end, undefined)
   childTest.end()
 })
 
 tap.test('find old version by number', async (childTest) => {
-  var mock = await Mock.findVersion(mockOne._id, 1, Mock)
+  let mock = await Mock.findVersion(mockOne._id, 1, Mock)
   childTest.type(mock[c.VALIDITY].end, Date)
   childTest.end()
 })
@@ -91,9 +91,9 @@ tap.test('find current valid version', async (childTest) => {
 })
 
 tap.test('find old valid version', async (childTest) => {
-  var archivedMock = await Mock.VersionedModel.findById({ _id: mockOne[c.ID], _version: 1 })
-  let creationDate = archivedMock[c.VALIDITY].start
-  var mock = await Mock.findValidVersion(mockOne._id, creationDate, Mock)
+  const archivedMock = await Mock.VersionedModel.findById({ _id: mockOne[c.ID], _version: 1 })
+  const creationDate = archivedMock[c.VALIDITY].start
+  const mock = await Mock.findValidVersion(mockOne._id, creationDate, Mock)
   childTest.equal(mock[c.VERSION], 1)
   childTest.end()
 })
@@ -110,26 +110,26 @@ tap.test('trying to update old version fails', async (childTest) => {
 })
 
 tap.test('delete object moves it to archive', async (childTest) => {
-  var mock = await Mock.findById(mockOne[c.ID])
+  const mock = await Mock.findById(mockOne[c.ID])
   mock._deletion = { "_deleter": "test" }
   await mock.remove()
 
-  var noMock = await Mock.findValidVersion(mockOne[c.ID], new Date(), Mock)
-  childTest.isEqual(noMock, null)
+  const noMock = await Mock.findValidVersion(mockOne[c.ID], new Date(), Mock)
+  childTest.equal(noMock, null)
   
-  var archivedMock = await Mock.VersionedModel.findById({ _id: mockOne[c.ID], _version: 2 })
-  childTest.isEqual(archivedMock[c.DELETER], "test")
+  const archivedMock = await Mock.VersionedModel.findById({ _id: mockOne[c.ID], _version: 2 })
+  childTest.equal(archivedMock[c.DELETER], "test")
 
   childTest.end()
 })
 
 tap.test('delete object has default deleter if not provided', async (childTest) => {
-  var mock = await new Mock(mockTwo).save()
+  const mock = await new Mock(mockTwo).save()
   
   await mock.remove()
 
-  var archivedMock = await Mock.VersionedModel.findById({ _id: mockTwo[c.ID], _version: 1 })
-  childTest.isEqual(archivedMock[c.DELETER], c.DEFAULT_DELETER)
+  const archivedMock = await Mock.VersionedModel.findById({ _id: mockTwo[c.ID], _version: 1 })
+  childTest.equal(archivedMock[c.DELETER], c.DEFAULT_DELETER)
 
   childTest.end()
 })

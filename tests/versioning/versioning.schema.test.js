@@ -1,7 +1,7 @@
 const versioning = require('../../src/versioning/versioning')
 const c = require('../../src/versioning/constants')
 const mongoose = require('mongoose')
-var Schema = mongoose.Schema
+let Schema = mongoose.Schema
 
 // test versioning.js
 const tap = require('tap')

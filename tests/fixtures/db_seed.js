@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-var chalk = require('chalk')
+const chalk = require('chalk')
 
 const customerOne = { 
     _id: new mongoose.Types.ObjectId(),
