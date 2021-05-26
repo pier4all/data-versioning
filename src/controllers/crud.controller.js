@@ -1,21 +1,15 @@
-
 const util = require('../versioning/util')
 const c = require('../versioning/constants')
 const chalk = require('chalk')
 mongoose = require('mongoose')
 
 const { processError } = require('./error')
-
-const fs = require('fs')
 const path = require('path')
-const NS_PER_SEC = 1e9
 
 // output path
 const report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
 const report = path.join(__dirname, '..', '..', 'output', report_file)
-const sep = '\t'
 
-/* JCS: omit semicolons */
 exports.create = async (req, res) => {
 
   console.log(chalk.cyan("crud.controller.create: called create"))
@@ -31,17 +25,15 @@ exports.create = async (req, res) => {
     // Create an Model
     const document = new Model(req.body)
 
-    const bytesize = Buffer.from(JSON.stringify(document)).length
-
-    // Save Customer in the database
+    // start timer
     const start = process.hrtime()
 
+    // Save Customer in the database
     await document.save()
 
     // log timer (milliseconds)
     const diff = process.hrtime(start)
-    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    fs.appendFileSync(report, ['INSERT', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    util.logTimer(report, 'INSERT', diff, document, collection)
 
     res.status(201).send(document)
 
@@ -51,7 +43,6 @@ exports.create = async (req, res) => {
   }
 }
 
-/* JCS: function too long, identify reusability */
 exports.update = async (req, res) => {
 
   let session
@@ -67,51 +58,30 @@ exports.update = async (req, res) => {
     const Model = require(`../models/${collection}`)
 
     // Validate request
-    if (!req.body) {
-      return res.status(400).send({ message: "Data to update can not be empty" })
-    }
-
-    version = req.params.version
-
-    if (!util.isValidVersion(version)) {
-      console.error("Bad version provided")
-      res
-          .status(400)
-          .send({ message: "Invalid version provided " + version })
+    let error = validateUpdateRequest(req)
+    if (error) {
+      processError(res, error, "Invalid request parameter")
       return
     }
 
-    // Get the id
-    id = req.params.id
-
     // Find Customer in the database
-    const document = await Model.findById(id)
+    id = req.params.id
+    let document = await Model.findById(id)
 
     if (!document) {
       res.status(404).send({ message: "Not found document with id " + id })
       return
     }
 
-    version = parseInt(version)
-
+    version = parseInt(req.params.version)
+    // validate document version
     if (document._version != version) {
       res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
       return
     }
 
     // modify the provided fields stkipping the protected ones
-    for (let key in req.body) {
-        if (req.body.hasOwnProperty(key)) {
-          if (util.isWritable(key)) {
-            document[key] = req.body[key]
-          } else {
-            // TODO: consider returning a 400
-            if (req.body[key] != document[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ))
-          }
-        }
-    }
-
-    const bytesize = Buffer.from(JSON.stringify(document)).length
+    document = updateDocumentFields(document, req.body)
 
     // start timer
     const start = process.hrtime()
@@ -120,38 +90,28 @@ exports.update = async (req, res) => {
     session = await mongoose.startSession()
     session.startTransaction()
 
-    // store _session in document
+    // store _session in document and save
     document[c.SESSION] = session
-
     await document.save({session})
 
     // commit transaction
     await session.commitTransaction()
+    session.endSession()
 
     // log timer
     const diff = process.hrtime(start)
-    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    fs.appendFileSync(report, ['UPDATE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
-
-    session.endSession()
-    console.log(chalk.greenBright("-- commit transaction --"))
+    util.logTimer(report, 'UPDATE', diff, document, collection)
 
     // return result
     res.status(200).send(document)
-    // TODO consider alternative status 204 with no data
 
   } catch(error) {
-    if (session) {
-      session.endSession()
-      console.log(chalk.redBright("-- ABORT transaction --"))
-    }
-
+    if (session) session.endSession()
     const message = `Error updating document ${id} in the collection ${collection}.`
     processError(res, error, message)
   }
 }
 
-/* JCS: function too long */
 exports.delete = async (req, res) => {
   console.log(chalk.cyan("crud.controller.delete: called delete"))
 
@@ -167,7 +127,6 @@ exports.delete = async (req, res) => {
 
      // Get the id
     id = req.params.id
-    console.log(chalk.blue(id))
 
     // Delete Customer in the database
     let document = await Model.findById(id)
@@ -177,8 +136,6 @@ exports.delete = async (req, res) => {
       // set the deletion info
       document[c.DELETION] = req.body || {}
 
-      const bytesize = Buffer.from(JSON.stringify(document)).length
-
       // start timer
       const start = process.hrtime()
 
@@ -186,39 +143,29 @@ exports.delete = async (req, res) => {
       session = await mongoose.startSession()
       session.startTransaction()
 
-      // store _session in document
+      // store _session in document and remove
       document[c.SESSION] = session
-
       let data = await document.remove({session})    
 
       // commit transaction
       await session.commitTransaction()
+      session.endSession()
 
       // log timer
       const diff = process.hrtime(start)
-      const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-      fs.appendFileSync(report, ['DELETE', collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+      util.logTimer(report, 'DELETE', diff, document, collection)
 
       res.status(200).send(data)
-      // alternative status 204 with no data
-
-      session.endSession()
-      console.log(chalk.greenBright("-- commit transaction --"))
-
     }
   } catch(error) {
-    if (session) {
-      session.endSession()
-      console.log(chalk.redBright("-- ABORT transaction --"))
-    }
+    if (session) session.endSession()
+    
     const message = `Error deleting document ${id} in the collection ${collection}.`
     processError(res, error, message)
   }
 }
 
-/* JCS: function too long */
 exports.findValidVersion = async(req, res) => {
-  // TODO: maybe accept a date range too
   console.log(chalk.cyan("crud.controller: called findValidVersion"))
 
   let id
@@ -240,9 +187,7 @@ exports.findValidVersion = async(req, res) => {
       log_tag = "_PAST"
       date = new Date(req.query.date)
     }
-    else {
-      date = new Date()
-    }
+    else date = new Date()
 
     if (!isValidDate(date)) {
       console.error("Bad date provided")
@@ -259,9 +204,7 @@ exports.findValidVersion = async(req, res) => {
 
     // log timer
     const diff = process.hrtime(start)
-    const bytesize = Buffer.from(JSON.stringify(document)).length
-    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) fs.appendFileSync(report, ['FIND_VALID' + log_tag, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) util.logTimer(report, 'FIND_VALID' + log_tag, diff, document, collection)
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
     else res.send(document)
@@ -290,22 +233,19 @@ exports.findVersion = async(req, res) => {
 
     if (!util.isValidVersion(version)) {
       console.error("Bad version provided")
-      res
-          .status(400)
-          .send({ message: "Invalid version provided " + version })
+      res.status(400).send({ message: "Invalid version provided " + version })
       return
     }
 
     // start timer
     const start = process.hrtime()
 
+    // find the document
     const document = await Model.findVersion(id, parseInt(version), Model)
 
     // log timer
     const diff = process.hrtime(start)
-    const bytesize = Buffer.from(JSON.stringify(document)).length
-    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
-    if (document) fs.appendFileSync(report, ['FIND_VERSION' + '_' + version, collection, document._version, new Date().toISOString(), bytesize, time].join(sep) + '\n')
+    if (document) util.logTimer(report, 'FIND_VERSION' + '_' + version, diff, document, collection)
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
     else res.send(document)
@@ -342,4 +282,35 @@ exports.findAll = async (req, res) => {
 
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d)
+}
+
+function validateUpdateRequest(req) {
+  // Validate request
+  if (!req.body) {
+    const parseError = new Error("Data to update can not be empty")
+    parseError.code = "BAD_PARAMETER"
+    return parseError
+  }
+
+  version = req.params.version  
+  if (!util.isValidVersion(version)) {
+    const parseError = new Error("Invalid version provided: " + version)
+    parseError.code = "BAD_PARAMETER"
+    return parseError
+  }
+  return undefined
+}
+
+function updateDocumentFields(document, update) {
+  // modify the provided fields stkipping the protected ones
+  for (let key in update) {
+    if (update.hasOwnProperty(key)) {
+      if (util.isWritable(key)) 
+        document[key] = update[key]
+      else 
+        if (update[key] != document[key]) 
+          console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ))
+    }
+  }
+  return document
 }

@@ -42,7 +42,7 @@ tap.test('requests the "/query" route', async t => {
   
     const response = await app.inject({
       method: 'GET',
-      url: '/crud'
+      url: '/query'
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
 })
@@ -85,6 +85,40 @@ tap.test('filter customers by language and sort by email in ascending order', as
     const customers = JSON.parse(response.body)
     t.equal(2, customers.length)
     t.equal(db_seed.customerFour.custno, customers[0]['custno'])
+})
+
+
+tap.test('bad formatted url parameters query', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'GET',
+        url: '/query/customer/find?query="language":"DE":"BAD"&sort="email":1',
+    })
+
+    t.equal(response.statusCode, 400, 'fails with status code of 400')
+})
+
+tap.test('bad type parameters query', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'GET',
+        url: '/query/customer/find?sort="email":666',
+    })
+
+    t.equal(response.statusCode, 400, 'fails with status code of 400')
+})
+
+tap.test('unexisting collection query', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'GET',
+        url: '/query/wrong/find?sort="email":1',
+    })
+
+    t.equal(response.statusCode, 400, 'fails with status code of 400')
 })
 
 tap.test('group customers by language and get two in count, language ascending order', async t => {
