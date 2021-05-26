@@ -130,8 +130,9 @@ module.exports = function (schema, options) {
         query[constants.VERSION] = version
 
         let current = await model.findOne(query)
-        if (current) 
-            return current 
+        if (current) {
+            { return current }
+        }
 
         // 2. if not, check versioned collection
         // TODO: consider deleted documents and if we allow negative version numbers

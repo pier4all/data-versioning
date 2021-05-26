@@ -78,7 +78,7 @@ tap.test('filter customers by language and sort by email in ascending order', as
 
     const response = await app.inject({
         method: 'GET',
-        url: '/query/customer/find?query="language": "DE"&sort="email":1',
+        url: '/query/customer/find?query="language":"DE"&sort="email":1',
     })
 
     t.equal(response.statusCode, 200, 'returns a status code of 200')

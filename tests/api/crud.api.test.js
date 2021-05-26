@@ -90,13 +90,14 @@ tap.test('requests all the customers', async t => {
 
 tap.test('edit customer', async t => {
     const app = build()
-    const changes = { "language": "DE" }
+    const changes = { "language": "DE", "_version": 7 }
     const response = await app.inject({
         method: 'PATCH',
         url: `/crud/customer/${db_seed.customerOne._id}/1`,
         body: changes
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
+    t.equal(2, JSON.parse(response.body)._version)
 }) 
 
 tap.test('bad edit customer with no data', async t => {
@@ -105,6 +106,16 @@ tap.test('bad edit customer with no data', async t => {
     const response = await app.inject({
         method: 'PATCH',
         url: `/crud/customer/${db_seed.customerOne._id}/2`
+    })
+    t.equal(response.statusCode, 400, 'returns a status code of 400')
+}) 
+
+tap.test('bad edit customer with invalid version', async t => {
+    const app = build()
+    const changes = { }
+    const response = await app.inject({
+        method: 'PATCH',
+        url: `/crud/customer/${db_seed.customerOne._id}/two`
     })
     t.equal(response.statusCode, 400, 'returns a status code of 400')
 }) 
