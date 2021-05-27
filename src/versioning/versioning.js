@@ -2,6 +2,7 @@ const chalk = require('chalk')
 const util = require("./util")
 const constants = require("./constants")
 const ObjectId = require('mongoose').Types.ObjectId
+const { fromJS } = require('immutable');
 "use strict"
 
 module.exports = function (schema, options) {
@@ -100,8 +101,6 @@ module.exports = function (schema, options) {
         let query = { "_id": ObjectId(id)}
         query[validity_start] = { $lte: date }
 
-        //console.log(chalk.magenta(JSON.stringify(query)))
-
         let current = await model.findOne(query)
         if (current) 
             return current 
@@ -113,8 +112,6 @@ module.exports = function (schema, options) {
         query[constants.ID + "." + constants.ID] = ObjectId(id)
         query[validity_start] = { $lte: date }
         query[validity_end] = { $gt: date }
-
-        //console.log(chalk.magenta(JSON.stringify(query)))
 
         let version = await versionedModel.findOne(query)
         return version
@@ -175,7 +172,9 @@ module.exports = function (schema, options) {
             let err = new Error('modified and base versions do not match')
             throw (err)
         }
-        let clone = JSON.parse(JSON.stringify(base))
+
+        // clone base document to create an archived version
+        let clone = fromJS(base)
 
         // Build Vermongo historical ID
         clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
@@ -195,7 +194,6 @@ module.exports = function (schema, options) {
         this[constants.VERSION] = this[constants.VERSION] + 1
 
         // Save versioned document
-        //console.log(chalk.magentaBright(`versioning.save: ${JSON.stringify(clone, null, 2)}`))
         var versionedDoc = new schema.statics.VersionedModel(clone)
 
         await versionedDoc.save(session)
@@ -214,7 +212,7 @@ module.exports = function (schema, options) {
         let delete_info = this[constants.DELETION] || {}
         delete this[constants.DELETION]
 
-        let clone = JSON.parse(JSON.stringify(this.toObject()))
+        let clone = fromJS(this.toObject())
 
         clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
 
