@@ -66,6 +66,7 @@ module.exports = function (schema, options) {
     schema.add(editorField)
     schema.add(deleterField)
 
+    versionedSchema.add(versionField)
     versionedSchema.add(versionedIdField)
     versionedSchema.add(versionedValidityField)
     versionedSchema.add(editorField)
@@ -174,7 +175,7 @@ module.exports = function (schema, options) {
         }
 
         // clone base document to create an archived version
-        let clone = fromJS(base)
+        let clone = fromJS(base).toJS()
 
         // Build Vermongo historical ID
         clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
@@ -195,6 +196,7 @@ module.exports = function (schema, options) {
 
         // Save versioned document
         var versionedDoc = new schema.statics.VersionedModel(clone)
+        console.log(chalk.cyan.italic(JSON.stringify(versionedDoc)))
 
         await versionedDoc.save(session)
 
@@ -212,7 +214,7 @@ module.exports = function (schema, options) {
         let delete_info = this[constants.DELETION] || {}
         delete this[constants.DELETION]
 
-        let clone = fromJS(this.toObject())
+        let clone = fromJS(this.toObject()).toJS()
 
         clone[constants.ID] = { [constants.ID]: this[constants.ID], [constants.VERSION]: this[constants.VERSION] }
 

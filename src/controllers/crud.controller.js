@@ -116,7 +116,7 @@ exports.delete = async (req, res) => {
   console.log(chalk.cyan("crud.controller.delete: called delete"))
 
   let session
-  let id
+  let id, version
   let collection
 
   try {
@@ -130,33 +130,42 @@ exports.delete = async (req, res) => {
 
     // Delete Customer in the database
     let document = await Model.findById(id)
-    if (!document)
+    if (!document) {
         res.status(404).send({ message: "Not found document with id " + id })
-    else {
-      // set the deletion info
-      document[c.DELETION] = req.body || {}
-
-      // start timer
-      const start = process.hrtime()
-
-      // start transaction
-      session = await mongoose.startSession()
-      session.startTransaction()
-
-      // store _session in document and remove
-      document[c.SESSION] = session
-      let data = await document.remove({session})    
-
-      // commit transaction
-      await session.commitTransaction()
-      session.endSession()
-
-      // log timer
-      const diff = process.hrtime(start)
-      util.logTimer(report, 'DELETE', diff, document, collection)
-
-      res.status(200).send(data)
+        return
     }
+
+    // validate document version
+    version = parseInt(req.params.version)
+    if (document._version != version) {
+      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
+      return
+    }
+
+    // set the deletion info
+    document[c.DELETION] = req.body || {}
+
+    // start timer
+    const start = process.hrtime()
+
+    // start transaction
+    session = await mongoose.startSession()
+    session.startTransaction()
+
+    // store _session in document and remove
+    document[c.SESSION] = session
+    let data = await document.remove({session})    
+
+    // commit transaction
+    await session.commitTransaction()
+    session.endSession()
+
+    // log timer
+    const diff = process.hrtime(start)
+    util.logTimer(report, 'DELETE', diff, document, collection)
+
+    res.status(200).send(data)
+    
   } catch(error) {
     if (session) session.endSession()
     

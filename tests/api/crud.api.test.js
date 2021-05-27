@@ -178,7 +178,7 @@ tap.test('delete customer', async t => {
     await wait(1000) // sleep a bit before deleting
     const response = await app.inject({
         method: 'DELETE',
-        url: `/crud/customer/${db_seed.customerOne._id}`
+        url: `/crud/customer/${db_seed.customerOne._id}/2`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     console.log(response.body)

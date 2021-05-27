@@ -32,7 +32,7 @@ module.exports = fastify => {
   })
 
   // Delete an Document
-  fastify.delete("/crud/:collection/:id", async (request, reply) => {
+  fastify.delete("/crud/:collection/:id/:version", async (request, reply) => {
     return controller.delete(request, reply)
   })
 
