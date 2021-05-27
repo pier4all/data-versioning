@@ -3,6 +3,7 @@ const util = require("./util")
 const constants = require("./constants")
 const ObjectId = require('mongoose').Types.ObjectId
 const { fromJS } = require('immutable');
+const { DBRef } = require('mongodb');
 "use strict"
 
 module.exports = function (schema, options) {

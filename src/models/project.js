@@ -1,10 +1,10 @@
 // imports
 const mongoose = require('mongoose')
+require('../db/dbref').loadType(mongoose)
 const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
 
 const NAME = "project"
-const DB_NAME = mongoose.connection.name
 
 // schema definition
 let Schema = mongoose.Schema
@@ -12,16 +12,8 @@ let Schema = mongoose.Schema
 let projectSchema = new Schema({
   prono: { type: Number, required: true, unique: true },
   title: { type: String, required: true },
-  "ref-customer" : { 
-    "$id": mongoose.Schema.Types.ObjectId,
-    "$ref": {type: String, default: "customers" }, 
-    "$db": {type: String, default: DB_NAME }
-  },
-  "ref-employee" : { 
-    "$id": mongoose.Schema.Types.ObjectId,
-    "$ref": {type: String, default: "employees" }, 
-    "$db": {type: String, default: DB_NAME }
-    }
+  "ref-customer" : mongoose.Schema.Types.DBRef,
+  "ref-employee" : mongoose.Schema.Types.DBRef
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }

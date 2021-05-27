@@ -1,5 +1,6 @@
 // imports
 const mongoose = require('mongoose')
+require('../db/dbref').loadType(mongoose)
 const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
 
@@ -10,21 +11,9 @@ const DB_NAME = mongoose.connection.name
 let Schema = mongoose.Schema
 
 let timesheetSchema = new Schema({
-  "ref-project": { 
-    "$id": mongoose.Schema.Types.ObjectId,
-    "$ref": {type: String, default: "projects" }, 
-    "$db": {type: String, default: DB_NAME }
-  },
-  "ref-employee": { 
-    "$id": mongoose.Schema.Types.ObjectId,
-    "$ref": {type: String, default: "employees" }, 
-    "$db": {type: String, default: DB_NAME }
-  },
-  "ref-service": { 
-    "$id": mongoose.Schema.Types.ObjectId,
-    "$ref": {type: String, default: "services" }, 
-    "$db": {type: String, default: DB_NAME }
-  },
+  "ref-project": mongoose.Schema.Types.DBRef,
+  "ref-employee": mongoose.Schema.Types.DBRef,
+  "ref-service": mongoose.Schema.Types.DBRef,
   date: { type: Date, required: true },
   quantity: { type: Number }
 })
