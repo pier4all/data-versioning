@@ -29,7 +29,7 @@ module.exports = function (schema, options) {
 
     // Copy schema options in the versioned schema
     for (var key in options) {
-        if (options.hasOwnProperty(key))
+        if (options.hasOwnProperty(key)) 
             versionedSchema.set(key, options[key])
     }
 
@@ -76,7 +76,7 @@ module.exports = function (schema, options) {
     const validity_end = constants.VALIDITY + ".end"
     const validity_start = constants.VALIDITY + ".start"
 
-    var versionedValidityIndex = {}
+    let versionedValidityIndex = {}
     versionedValidityIndex[constants.ID + '.' + constants.ID] = 1
     versionedValidityIndex[validity_start] = 1
     versionedValidityIndex[validity_end] = 1

@@ -11,9 +11,9 @@ const DB_NAME = mongoose.connection.name
 let Schema = mongoose.Schema
 
 let timesheetSchema = new Schema({
-  "ref-project": mongoose.Schema.Types.DBRef,
-  "ref-employee": mongoose.Schema.Types.DBRef,
-  "ref-service": mongoose.Schema.Types.DBRef,
+  "ref-project": { type: mongoose.Schema.Types.ObjectId, ref: 'project'},
+  "ref-employee": { type: mongoose.Schema.Types.ObjectId, ref: 'employee'},
+  "ref-service": { type: mongoose.Schema.Types.ObjectId, ref: 'service'},
   date: { type: Date, required: true },
   quantity: { type: Number }
 })

@@ -88,6 +88,16 @@ tap.test('requests all the customers', async t => {
     t.equal(2, JSON.parse(response.body).length)
 })
 
+tap.test('requests all on a unexistent collection', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'GET',
+        url: '/crud/wrong/all'
+    })
+    t.equal(response.statusCode, 400, 'returns a status code of 400')
+})
+
 tap.test('edit customer', async t => {
     const app = build()
     const changes = { "language": "DE", "_version": 7 }
@@ -150,6 +160,17 @@ tap.test('requests to update unexistent customer data', async t => {
         body: {}
     })
     t.equal(response.statusCode, 404, 'fails with status code of 404')
+})
+
+tap.test('requests to update customer data wrong format version ', async t => {
+    const app = build()
+
+    const response = await app.inject({
+        method: 'PATCH',
+        url: `/crud/customer/${db_seed.customerThree._id}/bad`,
+        body: {}
+    })
+    t.equal(response.statusCode, 400, 'fails with status code of 400')
 })
 
 tap.test('requests old customer data', async t => {
