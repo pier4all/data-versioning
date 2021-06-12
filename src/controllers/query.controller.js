@@ -1,5 +1,5 @@
 
-const util = require('../versioning/util')
+const util = require('./api.util')
 const chalk = require('chalk')
 mongoose = require('mongoose')
 const { processError } = require('./error')

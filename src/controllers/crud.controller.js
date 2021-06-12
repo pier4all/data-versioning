@@ -1,4 +1,5 @@
-const util = require('../versioning/util')
+const versioningutil = require('../versioning/util')
+const util = require('./api.util')
 const c = require('../versioning/constants')
 const chalk = require('chalk')
 mongoose = require('mongoose')
@@ -240,7 +241,7 @@ exports.findVersion = async(req, res) => {
     id = req.params.id
     version = req.params.version
 
-    if (!util.isValidVersion(version)) {
+    if (!versioningutil.isValidVersion(version)) {
       console.error("Bad version provided")
       res.status(400).send({ message: "Invalid version provided " + version })
       return
@@ -302,7 +303,7 @@ function validateUpdateRequest(req) {
   }
 
   version = req.params.version  
-  if (!util.isValidVersion(version)) {
+  if (!versioningutil.isValidVersion(version)) {
     const parseError = new Error("Invalid version provided: " + version)
     parseError.code = "BAD_PARAMETER"
     return parseError
@@ -314,7 +315,7 @@ function updateDocumentFields(document, update) {
   // modify the provided fields stkipping the protected ones
   for (let key in update) {
     if (update.hasOwnProperty(key)) {
-      if (util.isWritable(key)) 
+      if (versioningutil.isWritable(key)) 
         document[key] = update[key]
       else 
         if (update[key] != document[key]) 
