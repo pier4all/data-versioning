@@ -1,6 +1,6 @@
-const versioningutil = require('../versioning/util')
+const versioningutil = require('mongoose-versioned/source/util')
 const util = require('./api.util')
-const c = require('../versioning/constants')
+const constants = require('mongoose-versioned/source/constants')
 const chalk = require('chalk')
 mongoose = require('mongoose')
 
@@ -92,7 +92,7 @@ exports.update = async (req, res) => {
     session.startTransaction()
 
     // store _session in document and save
-    document[c.SESSION] = session
+    document[constants.SESSION] = session
     await document.save({session})
 
     // commit transaction
@@ -144,7 +144,7 @@ exports.delete = async (req, res) => {
     }
 
     // set the deletion info
-    document[c.DELETION] = req.body || {}
+    document[constants.DELETION] = req.body || {}
 
     // start timer
     const start = process.hrtime()
@@ -154,7 +154,7 @@ exports.delete = async (req, res) => {
     session.startTransaction()
 
     // store _session in document and remove
-    document[c.SESSION] = session
+    document[constants.SESSION] = session
     let data = await document.remove({session})    
 
     // commit transaction

@@ -32,7 +32,8 @@
     "dotenv": "^8.2.0",
     "fastify": "^3.11.0",
     "immutable": "^4.0.0-rc.12",
-    "mongoose": "^5.11.13",
+    "mongoose": "^5.12.13",
+    "mongoose-versioned": "file:../mongoose-versioned",
     "nodemon": "^2.0.7"
   },
   "devDependencies": {

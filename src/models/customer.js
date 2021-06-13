@@ -1,7 +1,8 @@
 // imports
 const mongoose = require('mongoose')
-const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
+
+const versioning = require('mongoose-versioned/source/versioning')
 
 const NAME = "customer"
 
@@ -16,6 +17,6 @@ let customerSchema = new Schema({
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }
-customerSchema.plugin(versioning, NAME + "s.versioning")
+customerSchema.plugin(versioning, {collection: NAME + "s.versioning", mongoose})
 
 module.exports = mongoose.model(NAME, customerSchema)
