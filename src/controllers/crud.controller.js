@@ -191,7 +191,7 @@ exports.findValidVersion = async(req, res) => {
     // Get request parameters
     id = req.params.id
 
-    const log_tag = "_NOW"
+    let log_tag = "_NOW"
 
     if(req.query.date) {
       log_tag = "_PAST"

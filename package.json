@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/pier4all/data-versioning#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "colortape": "^0.1.2",
