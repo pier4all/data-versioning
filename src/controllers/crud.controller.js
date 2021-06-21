@@ -88,8 +88,8 @@ exports.update = async (req, res) => {
       return
     }
 
-    version = parseInt(req.params.version)
-    // validate document version
+    version = parseInt(version);
+
     if (document._id._version != version) { 
       res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._id._version}, got ${version}`});
       return
@@ -98,6 +98,20 @@ exports.update = async (req, res) => {
     if (document._validity.end) { 
       res.status(404).send({ message: `Version of document with id ${id} is deleted, validity ended on ${document._validity.end}`});
       return
+    }
+
+    let clone = new Model(JSON.parse(JSON.stringify(document)))
+    // modify the provided fields stkipping the protected ones
+    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body 
+    for (var key in req.body) {
+        if (req.body.hasOwnProperty(key)) {
+          if (util.isWritable(key)) {
+            clone[key] = req.body[key]
+          } else {
+            // TODO: consider returning a 400
+            if (req.body[key] != clone[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ));
+          }
+        }
     }
 
     let clone = new Model(JSON.parse(JSON.stringify(document)))
