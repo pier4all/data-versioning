@@ -2,7 +2,7 @@
 const mongoose = require('mongoose')
 mongoose.Promise = require('bluebird')
 
-const versioning = require('mongoose-versioned/source/versioning')
+const versioning = require('../versioning/versioning')
 
 const NAME = "customer"
 

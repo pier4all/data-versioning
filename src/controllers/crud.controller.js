@@ -7,6 +7,8 @@ mongoose = require('mongoose')
 const { processError } = require('./error')
 const path = require('path')
 
+const { fromJS } = require('immutable')
+
 // output path
 const report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
 const report = path.join(__dirname, '..', '..', 'output', report_file)
@@ -31,7 +33,7 @@ exports.create = async (req, res) => {
 
     // Save Customer in the database
 
-    if (!document[c.ID][c.ID]) { document[c.ID][c.ID] = new mongoose.Types.ObjectId() }
+    if (!document[constants.ID][constants.ID]) { document[constants.ID][constants.ID] = new mongoose.Types.ObjectId() }
 
     await document.save()
 
@@ -76,19 +78,19 @@ exports.update = async (req, res) => {
 
     // Find Customer in the database
     let query = {}
-    query[`${c.ID}.${c.ID}`] = id
+    query[`${constants.ID}.${constants.ID}`] = id
     
     let sort = {}
-    sort[`${c.ID}.${c.VERSION}`] = -1
+    sort[`${constants.ID}.${constants.VERSION}`] = -1
 
     let document = await Model.findOne(query).sort(sort)
-            
+    
     if (!document) {
       res.status(404).send({ message: "Not found document with id " + id })
       return
     }
 
-    version = parseInt(version);
+    version = parseInt(req.params.version);
 
     if (document._id._version != version) { 
       res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._id._version}, got ${version}`});
@@ -100,37 +102,22 @@ exports.update = async (req, res) => {
       return
     }
 
-    let clone = new Model(JSON.parse(JSON.stringify(document)))
-    // modify the provided fields stkipping the protected ones
-    // TODO: review this with Jean-Claude, probably the whole object should be provided in the body 
-    for (var key in req.body) {
-        if (req.body.hasOwnProperty(key)) {
-          if (util.isWritable(key)) {
-            clone[key] = req.body[key]
-          } else {
-            // TODO: consider returning a 400
-            if (req.body[key] != clone[key]) console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ));
-          }
-        }
-    }
-
-    let clone = new Model(JSON.parse(JSON.stringify(document)))
-    // modify the provided fields stkipping the protected ones
-    document = updateDocumentFields(document, req.body)
-
-    // start timer
-    const start = process.hrtime()
-
     // start transaction
     session = await mongoose.startSession()
     session.startTransaction()
 
+    // clone document
+    let clone = new Model(fromJS(document.toObject()).toJS())
+
     // store _session in document
-    // document[c.SESSION] = session
+    // document[constants.SESSION] = session
     const now = new Date()
 
     document._validity.end = now
     await document.save({session})   
+
+    // modify the provided fields stkipping the protected ones
+    clone = updateDocumentFields(clone, req.body)
 
     clone._validity.start = now
     clone._id._version = document._id._version + 1
@@ -148,7 +135,7 @@ exports.update = async (req, res) => {
     console.log(chalk.greenBright("-- commit transaction --"))
 
     // return result
-    res.status(200).send(document)
+    res.status(200).send(clone)
 
   } catch(error) {
     if (session) session.endSession()
@@ -175,10 +162,10 @@ exports.delete = async (req, res) => {
 
     // Delete Customer in the database
     let query = {}
-    query[`${c.ID}.${c.ID}`] = id
+    query[`${constants.ID}.${constants.ID}`] = id
     
     let sort = {}
-    sort[`${c.ID}.${c.VERSION}`] = -1
+    sort[`${constants.ID}.${constants.VERSION}`] = -1
 
     let document = await Model.findOne(query).sort(sort)
     // let document = await Model.findById(id)
@@ -193,12 +180,12 @@ exports.delete = async (req, res) => {
     }
       
     // set the deletion info
-    document[c.DELETION] = req.body || {}
+    document[constants.DELETION] = req.body || {}
 
     // validate document version
     version = parseInt(req.params.version)
-    if (document._version != version) {
-      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
+    if (document._id._version != version) {
+      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._id._version}, got ${version}`})
       return
     }
 
@@ -206,11 +193,11 @@ exports.delete = async (req, res) => {
     const start = process.hrtime()
 
     // add deletion info and validity
-    let delete_info = document[c.DELETION] || {}
-    document[c.DELETER] = delete_info[c.DELETER] || c.DEFAULT_DELETER;
+    let delete_info = document[constants.DELETION] || {}
+    document[constants.DELETER] = delete_info[constants.DELETER] || constants.DEFAULT_DELETER;
     
     const now = new Date()
-    document[c.VALIDITY]["end"] = now
+    document[constants.VALIDITY]["end"] = now
 
     // update instead of deleting
     let data = await document.save()   

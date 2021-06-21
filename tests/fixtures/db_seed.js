@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const chalk = require('chalk')
 
 const customerOne = { 
-    _id: new mongoose.Types.ObjectId(),
+    _id: { _id: new mongoose.Types.ObjectId(), _version: 1},
     "custno": 10001,
     "name": "Billa AG",
     "email": "info@billa.ch",
@@ -10,7 +10,7 @@ const customerOne = {
 }
 
 const customerTwo = { 
-    _id: new mongoose.Types.ObjectId(),
+    _id: { _id: new mongoose.Types.ObjectId(), _version: 1},
     "custno": 10002,
     "name": "LuaBox AG",
     "email": "luabox@etsy.es",
@@ -18,7 +18,7 @@ const customerTwo = {
 }
 
 const customerThree = { 
-    _id: new mongoose.Types.ObjectId(),
+    _id: { _id: new mongoose.Types.ObjectId(), _version: 1},
     "custno": 10003,
     "name": "Heinz AG",
     "email": "support@heinz-de.ch",
@@ -26,7 +26,7 @@ const customerThree = {
 }
 
 const customerFour = { 
-    _id: new mongoose.Types.ObjectId(),
+    _id: { _id: new mongoose.Types.ObjectId(), _version: 1},
     "custno": 10004,
     "name": "Mirk GmBH",
     "email": "mirk@mg.de",

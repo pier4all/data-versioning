@@ -1,6 +1,6 @@
 // imports
 const mongoose = require('mongoose')
-const versioning = require('mongoose-versioned/source/versioning')
+const versioning = require('../versioning/versioning')
 mongoose.Promise = require('bluebird')
 
 const NAME = "employee"

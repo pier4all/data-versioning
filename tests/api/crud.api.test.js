@@ -53,7 +53,7 @@ tap.test('create customer 1', async t => {
         body: db_seed.customerOne
     })
     t.equal(response.statusCode, 201, 'returns a status code of 200')
-    t.equal(1, JSON.parse(response.body)._version)
+    t.equal(1, JSON.parse(response.body)._id._version)
 }) 
 
 tap.test('create customer 2', async t => {
@@ -64,7 +64,7 @@ tap.test('create customer 2', async t => {
         body: db_seed.customerTwo
     })
     t.equal(response.statusCode, 201, 'returns a status code of 201')
-    t.equal(1, JSON.parse(response.body)._version)
+    t.equal(1, JSON.parse(response.body)._id._version)
 }) 
 
 tap.test('create duplicated customer 2', async t => {
@@ -101,13 +101,14 @@ tap.test('requests all on a unexistent collection', async t => {
 tap.test('edit customer', async t => {
     const app = build()
     const changes = { "language": "DE", "_version": 7 }
+    await wait(1000) // sleep a bit before deleting
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${db_seed.customerOne._id}/1`,
+        url: `/crud/customer/${db_seed.customerOne._id._id}/1`,
         body: changes
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
-    t.equal(2, JSON.parse(response.body)._version)
+    t.equal(2, JSON.parse(response.body)._id._version)
 }) 
 
 tap.test('bad edit customer with no data', async t => {
@@ -115,7 +116,7 @@ tap.test('bad edit customer with no data', async t => {
     const changes = { }
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${db_seed.customerOne._id}/2`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/2`
     })
     t.equal(response.statusCode, 400, 'returns a status code of 400')
 }) 
@@ -125,7 +126,7 @@ tap.test('bad edit customer with invalid version', async t => {
     const changes = { }
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${db_seed.customerOne._id}/two`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/two`
     })
     t.equal(response.statusCode, 400, 'returns a status code of 400')
 }) 
@@ -135,10 +136,10 @@ tap.test('requests current version customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${db_seed.customerOne._id}`
+        url: `/crud/customer/${db_seed.customerOne._id._id}`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
-    t.equal(2, JSON.parse(response.body)._version)
+    t.equal(2, JSON.parse(response.body)._id._version)
 })
 
 tap.test('requests wrong format version customer data', async t => {
@@ -146,7 +147,7 @@ tap.test('requests wrong format version customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${db_seed.customerOne._id}/one`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/one`
     })
     t.equal(response.statusCode, 400, 'fails with status code of 400')
 })
@@ -156,7 +157,7 @@ tap.test('requests to update unexistent customer data', async t => {
 
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${db_seed.customerThree._id}/1`,
+        url: `/crud/customer/${db_seed.customerThree._id._id}/1`,
         body: {}
     })
     t.equal(response.statusCode, 404, 'fails with status code of 404')
@@ -167,7 +168,7 @@ tap.test('requests to update customer data wrong format version ', async t => {
 
     const response = await app.inject({
         method: 'PATCH',
-        url: `/crud/customer/${db_seed.customerThree._id}/bad`,
+        url: `/crud/customer/${db_seed.customerThree._id._id}/bad`,
         body: {}
     })
     t.equal(response.statusCode, 400, 'fails with status code of 400')
@@ -178,10 +179,10 @@ tap.test('requests old customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${db_seed.customerOne._id}/1`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/1`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
-    t.equal(1, JSON.parse(response.body)._version)
+    t.equal(1, JSON.parse(response.body)._id._version)
 })
 
 tap.test('requests non existing version of customer data', async t => {
@@ -189,7 +190,7 @@ tap.test('requests non existing version of customer data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/customer/${db_seed.customerOne._id}/10`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/10`
     })
     t.equal(response.statusCode, 404, 'fails with status code of 404')
 })
@@ -199,7 +200,7 @@ tap.test('delete customer', async t => {
     await wait(1000) // sleep a bit before deleting
     const response = await app.inject({
         method: 'DELETE',
-        url: `/crud/customer/${db_seed.customerOne._id}/2`
+        url: `/crud/customer/${db_seed.customerOne._id._id}/2`
     })
     t.equal(response.statusCode, 200, 'returns a status code of 200')
     console.log(response.body)
@@ -210,7 +211,7 @@ tap.test('requests non-existent collection data', async t => {
 
     const response = await app.inject({
         method: 'GET',
-        url: `/crud/wrong/${db_seed.customerOne._id}/1`
+        url: `/crud/wrong/${db_seed.customerOne._id._id}/1`
     })
     t.equal(response.statusCode, 400, 'fails with status code of 400')
 })
