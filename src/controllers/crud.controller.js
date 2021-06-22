@@ -75,11 +75,11 @@ exports.update = async (req, res) => {
     }
 
     version = parseInt(req.params.version)
-    // validate document version
-    if (document._version != version) {
-      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
-      return
-    }
+    // // validate document version
+    // if (document._version != version) {
+    //   res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
+    //   return
+    // }
 
     // modify the provided fields stkipping the protected ones
     document = updateDocumentFields(document, req.body)
@@ -139,10 +139,10 @@ exports.delete = async (req, res) => {
 
     // validate document version
     version = parseInt(req.params.version)
-    if (document._version != version) {
-      res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
-      return
-    }
+    // if (document._version != version) {
+    //   res.status(404).send({ message: `Version of document with id ${id} do not match: existing document version is ${document._version}, got ${version}`})
+    //   return
+    // }
 
     // set the deletion info
     document[constants.DELETION] = req.body || {}
@@ -151,16 +151,16 @@ exports.delete = async (req, res) => {
     const start = process.hrtime()
 
     // start transaction
-    session = await mongoose.startSession()
-    session.startTransaction()
+    // session = await mongoose.startSession()
+    // session.startTransaction()
 
     // store _session in document and remove
-    document[constants.SESSION] = session
-    let data = await document.remove({session})    
+    // document[constants.SESSION] = session
+    let data = await document.remove()    
 
     // commit transaction
-    await session.commitTransaction()
-    session.endSession()
+    // await session.commitTransaction()
+    // session.endSession()
 
     // log timer
     const diff = process.hrtime(start)
@@ -169,7 +169,7 @@ exports.delete = async (req, res) => {
     res.status(200).send(data)
     
   } catch(error) {
-    if (session) session.endSession()
+    // if (session) session.endSession()
     
     const message = `Error deleting document ${id} in the collection ${collection}.`
     processError(res, error, message)
