@@ -22,7 +22,7 @@ const generateRequest = (collection, id, version, endpoint='crud') => {
     else return url
 }
 
-async function wait(ms = 1000) {
+async function wait(ms = 5000) {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
@@ -88,6 +88,7 @@ const run = async () => {
 
         console.log("\t - Updating at Collection '" + collection + "'");
         for(var document of inserted) {
+            await wait(100)
             try {
                 // TODO for other types of documents
                 var updated_document = { name: 'New '+ document.name }
