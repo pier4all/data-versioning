@@ -81,17 +81,65 @@ const updateAction = async(data) => {
     }
 }
 
+
+function get_random (list) {
+    return list[Math.floor((Math.random()*list.length))];
+}
+
+const updateRandom = async(documents) => {
+
+    let session
+
+    const document = get_random(documents)
+
+    try {
+
+        const data = await Model.findById(document._id)
+
+        session = await mongoose.startSession()
+        session.startTransaction()
+
+        // store _session in document and save
+        data[constants.SESSION] = session
+
+        data.name = 'ASYNC '+ data.name 
+        const saved = await data.save({session})
+
+        await session.commitTransaction()
+        session.endSession()
+
+        return saved
+
+    } catch (error) {
+        console.log(chalk.redBright(`* error * ${error}`))
+        return undefined
+    }
+}
+
 const run = async () => {
 
-    //const file = path.join(__dirname, 'data', 'customer.json')
-    // const file = path.join(__dirname, 'data', 'customer_with_errors.json')
-    const file = path.join(__dirname, 'data', 'customer_10000.json')
-        
-    console.log(chalk.cyan.bold("\n * Reading file: " + file))
-    var rawdata = fs.readFileSync(file);
-    let documents = JSON.parse(rawdata);
-    console.log("\t - Read " + documents.length + " documents");
+    //const files = [path.join(__dirname, 'data', 'customer.json')]
+    // const files = [path.join(__dirname, 'data', 'customer_with_errors.json')]
+    const files = [
+        path.join(__dirname, 'data', 'customer_10000.json'),
+        path.join(__dirname, 'data', 'customer_20000.json'),
+        path.join(__dirname, 'data', 'customer_30000.json')
+        // path.join(__dirname, 'data', 'customer_40000.json'),
+        // path.join(__dirname, 'data', 'customer_50000.json'),
+        // path.join(__dirname, 'data', 'customer_60000.json'),
+        // path.join(__dirname, 'data', 'customer_70000.json'),
+        // path.join(__dirname, 'data', 'customer_80000.json'),
+        // path.join(__dirname, 'data', 'customer_90000.json'),
+        // path.join(__dirname, 'data', 'customer_100000.json')
+    ]
 
+    let documents = []
+    for (const file of files){
+        console.log(chalk.cyan.bold("\n * Reading file: " + file))
+        var rawdata = fs.readFileSync(file);
+        documents = documents.concat(JSON.parse(rawdata));
+    }
+    console.log("\t - Read " + documents.length + " documents");
     await db.connect(mongodb_uri)
     
     // wait to create indexes
@@ -129,7 +177,12 @@ const run = async () => {
 
     const failed_updates = updated.filter(item => item == undefined).length
     console.log("\t - Performed " + updated.length + " updates, failed " + failed_updates);
-    
+
+    // // crazy updates
+    // for (var i = 0; i <= updated.length * 100; i++) {
+    //     updateRandom(updated);
+    // }
+
     // disconnect db
     await db.end()
 
