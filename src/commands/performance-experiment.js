@@ -30,20 +30,39 @@ async function wait(ms = 1000) {
 
 const run = async () => {
 
-    var fileList = [
-        path.join(__dirname, 'data', 'customer.json')
-        // path.join(__dirname, 'data', 'customer_10000.json'),  
-        // path.join(__dirname, 'data', 'customer_20000.json'),  
-        // path.join(__dirname, 'data', 'customer_30000.json'),  
-        // path.join(__dirname, 'data', 'customer_40000.json'),  
-        // path.join(__dirname, 'data', 'customer_50000.json'),  
-        // path.join(__dirname, 'data', 'customer_60000.json'),  
-        // path.join(__dirname, 'data', 'customer_70000.json'),  
-        // path.join(__dirname, 'data', 'customer_80000.json'),  
-        // path.join(__dirname, 'data', 'customer_90000.json'),  
-        // path.join(__dirname, 'data', 'customer_100000.json') 
-    ]
+    // var fileList = [
+    //     path.join(__dirname, 'data', 'customer.json')
+    // ]
 
+    // // Batch 100K
+    // var fileList = [
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_10000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_20000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_30000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_40000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_50000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_60000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_70000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_80000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_90000.json'),  
+    //     path.join(__dirname, 'data', 'batch_100K', 'customer_100000.json') 
+    // ]
+
+
+    // Batch 100K
+    var fileList = [
+        path.join(__dirname, 'data', 'batch_1M', 'customer_100000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_200000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_300000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_400000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_500000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_600000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_700000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_800000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_900000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'customer_1000000.json') 
+    ]
+    
     for (var file of fileList) {
         //read the docs
         console.log(chalk.cyan.bold("\n * Reading file: " + file))
