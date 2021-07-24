@@ -3,11 +3,6 @@ const util = require('./api.util')
 const chalk = require('chalk')
 mongoose = require('mongoose')
 const { processError } = require('./error')
-const path = require('path')
-
-// output path
-const report_file = 'time_report_query_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
-const report = path.join(__dirname, '..', '..', 'output', report_file)
 
 exports.find = async (req, res) => {
   let collection
@@ -41,7 +36,7 @@ exports.find = async (req, res) => {
 
     // log timer (milliseconds)
     const diff = process.hrtime(start)
-    util.logTimer(report, 'FIND', diff, documents, collection)
+    util.logTimerPerf('FIND', diff)
     
     if (!documents) res.status(404).send({ message: "Not found" })
     else res.send(documents)
@@ -81,7 +76,7 @@ exports.aggregate = async (req, res) => {
 
     // log timer (milliseconds)
     const diff = process.hrtime(start)
-    util.logTimer(report, 'AGGREGATE', diff, documents, collection)
+    util.logTimerPerf('AGGREGATE', diff)
 
     if (!documents) res.status(404).send({ message: "Not found" })
     else res.send(documents)

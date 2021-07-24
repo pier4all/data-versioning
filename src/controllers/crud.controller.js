@@ -7,10 +7,6 @@ mongoose = require('mongoose')
 const { processError } = require('./error')
 const path = require('path')
 
-// output path
-const report_file = 'time_report_' + new Date().toISOString().replace('T', '_').replace(/:/g, '-').split('.')[0] + '.csv'
-const report = path.join(__dirname, '..', '..', 'output', report_file)
-
 exports.create = async (req, res) => {
 
   console.log(chalk.cyan("crud.controller.create: called create"))
@@ -34,7 +30,7 @@ exports.create = async (req, res) => {
 
     // log timer (milliseconds)
     const diff = process.hrtime(start)
-    util.logTimer(report, 'INSERT', diff, document, collection)
+    util.logTimerPerf('INSERT', diff)
 
     res.status(201).send(document)
 
@@ -102,7 +98,7 @@ exports.update = async (req, res) => {
 
     // log timer
     const diff = process.hrtime(start)
-    util.logTimer(report, 'UPDATE', diff, document, collection)
+    util.logTimerPerf('UPDATE', diff)
 
     // return result
     res.status(200).send(document)
@@ -164,7 +160,7 @@ exports.delete = async (req, res) => {
 
     // log timer
     const diff = process.hrtime(start)
-    util.logTimer(report, 'DELETE', diff, document, collection)
+    util.logTimerPerf('DELETE', diff)
 
     res.status(200).send(data)
     
@@ -215,7 +211,7 @@ exports.findValidVersion = async(req, res) => {
     
     // log timer
     const diff = process.hrtime(start)
-    if (document) util.logTimer(report, 'FIND_VALID' + log_tag, diff, document, collection)
+    if (document) util.logTimerPerf('FIND_VALID' + log_tag, diff)
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
     else res.send(document)
@@ -255,7 +251,7 @@ exports.findVersion = async(req, res) => {
 
     // log timer
     const diff = process.hrtime(start)
-    if (document) util.logTimer(report, 'FIND_VERSION' + '_' + version, diff, document, collection)
+    if (document) util.logTimerPerf('FIND_VERSION' + '_' + version, diff)
 
     if (!document) res.status(404).send({ message: "Not found document with id " + id })
     else res.send(document)
