@@ -48,7 +48,6 @@ const run = async () => {
     //     path.join(__dirname, 'data', 'batch_100K', 'customer_100000.json') 
     // ]
 
-
     // Batch 100K
     var fileList = [
         path.join(__dirname, 'data', 'batch_1M', 'customer_100000.json'),  
