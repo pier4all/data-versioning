@@ -1,5 +1,4 @@
 // entry point
-
 const db = require('./db/database')
 
 // read credentials
@@ -30,7 +29,7 @@ const start = async () => {
 
   } catch (err) {
 
-    fastify.log.error(err)
+    console.error(err)
     endConnection()
     process.exit(1)
 

@@ -38,17 +38,17 @@ const run = async () => {
 
     // Batch 1M
     var fileList = [
-        path.join(__dirname, 'data', 'employee.json')
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_100000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_200000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_300000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_400000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_500000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_600000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_700000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
-        // path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json') 
+        // path.join(__dirname, 'data', 'employee.json')
+        path.join(__dirname, 'data', 'batch_1M', 'employee_100000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_200000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_300000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_400000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_500000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_600000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_700000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json') 
     ]
     const COLLECTION = 'employee'
 
@@ -194,7 +194,7 @@ const run = async () => {
         for(var document of inserted) {
             try {
                 url = generateRequest(collection, 'find', undefined, endpoint='query')
-                url += `?query="pricePerWorkingUnit": {"$lte": ${document.pricePerWorkingUnit}}`
+                url += `?query="_validity.end": null,"pricePerWorkingUnit": {"$lte": ${document.pricePerWorkingUnit}}`
                 var response = await axios.get(url); 
             } catch (error) {
                 console.error(chalk.redBright.bold(error.message));

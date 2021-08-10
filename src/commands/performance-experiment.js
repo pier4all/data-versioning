@@ -185,7 +185,7 @@ const run = async () => {
         for(var document of inserted) {
             try {
                 url = generateRequest(collection, 'find', undefined, endpoint='query')
-                url += `?query="language": "${document.language}"`
+                url += `?query="_validity.end": null,"language": "${document.language}"`
                 var response = await axios.get(url); 
             } catch (error) {
                 console.error(chalk.redBright.bold(error.message));
