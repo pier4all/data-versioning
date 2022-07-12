@@ -1,5 +1,5 @@
 # data-versioning
-Repository for evaluating the different approaches to data versioning
+Repository for evaluating the different approaches to data versioning. Library available as NPM module.
 
 ## Instructions
 
