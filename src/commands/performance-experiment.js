@@ -75,6 +75,7 @@ const run = async () => {
         var collection = COLLECTION 
         console.log("\t - Inserting at Collection '" + collection + "'");
         var url = generateRequest(collection)
+        console.log(url)
         for(var document of documents) {
             try {
                 // only for documents with dates or ids (fix for mongoose)
@@ -102,110 +103,110 @@ const run = async () => {
             }           
         }
         
-        await wait()
-
-        console.log("\t - Updating at Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                // TODO for other types of documents
-                var updated_document = { name: 'New '+ document.name }
-                let id = document._id._id || document._id
-                url = generateRequest(collection, id, 1)
-                var response = await axios.patch(url, updated_document);     
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                console.error(chalk.red(error));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Querying currently valid version at Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                let id = document._id._id || document._id
-                url = generateRequest(collection, id)
-                var response = await axios.get(url);     
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Querying past valid version at Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                if (document._validity) {
-                    var date = document._validity.start
-                    let id = document._id._id || document._id
-                    url = generateRequest(collection, id)
-                    var response = await axios.get(url, {params: {date}});    
-                } 
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Querying current version at Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                let id = document._id._id || document._id
-                url = generateRequest(collection, id)
-                var response = await axios.get(url + "/2");     
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Querying previous version at Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                let id = document._id._id || document._id
-                url = generateRequest(collection, id)
-                var response = await axios.get(url + "/1");     
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Find by non indexed field at current collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                url = generateRequest(collection, 'find', undefined, endpoint='query')
-                url += `?query="language": "${document.language}"`
-                var response = await axios.get(url); 
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-
-        await wait()
-
-        console.log("\t - Deleting from Collection '" + collection + "'");
-        for(var document of inserted) {
-            try {
-                let id = document._id._id || document._id
-                url = generateRequest(collection, id)
-                var response = await axios.delete(url + '/2');     
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }           
-        }
-    } 
+//        await wait()
+//
+//        console.log("\t - Updating at Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                // TODO for other types of documents
+//                var updated_document = { name: 'New '+ document.name }
+//                let id = document._id._id || document._id
+//                url = generateRequest(collection, id, 1)
+//                var response = await axios.patch(url, updated_document);
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                console.error(chalk.red(error));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Querying currently valid version at Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                let id = document._id._id || document._id
+//                url = generateRequest(collection, id)
+//                var response = await axios.get(url);
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Querying past valid version at Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                if (document._validity) {
+//                    var date = document._validity.start
+//                    let id = document._id._id || document._id
+//                    url = generateRequest(collection, id)
+//                    var response = await axios.get(url, {params: {date}});
+//                }
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Querying current version at Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                let id = document._id._id || document._id
+//                url = generateRequest(collection, id)
+//                var response = await axios.get(url + "/2");
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Querying previous version at Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                let id = document._id._id || document._id
+//                url = generateRequest(collection, id)
+//                var response = await axios.get(url + "/1");
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Find by non indexed field at current collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                url = generateRequest(collection, 'find', undefined, endpoint='query')
+//                url += `?query="language": "${document.language}"`
+//                var response = await axios.get(url);
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+//
+//        await wait()
+//
+//        console.log("\t - Deleting from Collection '" + collection + "'");
+//        for(var document of inserted) {
+//            try {
+//                let id = document._id._id || document._id
+//                url = generateRequest(collection, id)
+//                var response = await axios.delete(url + '/2');
+//            } catch (error) {
+//                console.error(chalk.redBright.bold(error.message));
+//                return
+//            }
+//        }
+    }
 }
 
 
