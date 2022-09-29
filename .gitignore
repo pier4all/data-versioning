@@ -104,3 +104,5 @@ dist
 
 # output
 output/*.csv
+output
+.idea

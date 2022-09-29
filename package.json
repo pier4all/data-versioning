@@ -26,19 +26,19 @@
   },
   "homepage": "https://github.com/pier4all/data-versioning#readme",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "bluebird": "^3.7.2",
     "chalk": "^4.1.0",
     "colortape": "^0.1.2",
     "dotenv": "^8.2.0",
     "fastify": "^3.11.0",
     "immutable": "^4.0.0-rc.12",
-    "mongoose": "^5.12.13",
-    "mongoose-versioned": "^1.0.2",
-    "nodemon": "^2.0.7"
+    "mongoose": "^6.6.1",
+    "mongoose-versioned": "^1.2.4",
+    "nodemon": "^2.0.20"
   },
   "devDependencies": {
     "mongodb-memory-server": "^6.9.5",
-    "tap": "^14.11.0"
+    "tap": "^16.3.0"
   }
 }
