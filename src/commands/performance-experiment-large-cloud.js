@@ -38,14 +38,14 @@ const run = async () => {
 
     // Batch 1M
     var fileList = [
-        path.join(__dirname, 'data', 'employee.json'),
-        path.join(__dirname, 'data', 'employee_1000.json')
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json')
+        // path.join(__dirname, 'data', 'employee.json'),
+        // path.join(__dirname, 'data', 'employee_1000.json')
+        path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json')
     ]
 
     const COLLECTION = 'employee'
 
-    const BATCH_SIZE = 100
+    const BATCH_SIZE = 1000
 
     let total_documents = []
 
