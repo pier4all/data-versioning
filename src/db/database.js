@@ -5,10 +5,11 @@ const chalk = require('chalk')
 exports.connect =  async (mongodb_uri) => {
     console.log(chalk.yellow("Database.connect: DB connecting (" + mongodb_uri + ") ... "))
     try {
-        await mongoose.connect(mongodb_uri, { useUnifiedTopology: true, useNewUrlParser: true, useFindAndModify: false })
+        await mongoose.connect(mongodb_uri, { useUnifiedTopology: true, useNewUrlParser: true, autoIndex: false  })
+        // mongoose.set('debug', true);
         console.log(chalk.green.bold("Database.connect: DB connected "))
     } catch (err) {
-        console.error(`Database.connect: MongoDB connection error. Please make sure MongoDB is running:` + err.message)
+        console.error(`Database.connect: MongoDB connection error. Please make sure MongoDB is running: ` + err.message)
         throw new Error(err)
     }
 }

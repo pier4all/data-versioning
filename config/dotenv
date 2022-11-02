@@ -2,4 +2,5 @@
 # Do not surround the URI with quotes
 DB_URI=mongodb://<user>:<password>@<server>:<port>/<db>?authSource=<authdb>
 PORT=<port_number>
+API_URL= <localhost>
 
