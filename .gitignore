@@ -106,3 +106,5 @@ dist
 output/*.csv
 output
 .idea
+src/commands/data/batch_100K
+src/commands/data/batch_1M
