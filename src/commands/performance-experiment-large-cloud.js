@@ -126,7 +126,9 @@ const run = async () => {
            await wait(100)
            try {
                // TODO for other types of documents
-               var updated_document = { name: 'New '+ document.name }
+               let user_subdoc = document.user
+               user_subdoc.username = 'new.' + user_subdoc.username
+               var updated_document = { user: user_subdoc }
                let id = document._id._id || document._id
                url = generateRequest(collection, id, 1)
                var response = await axios.patch(url, updated_document);
