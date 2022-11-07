@@ -39,16 +39,26 @@ const run = async () => {
     // Batch 1M
     var fileList = [
         // path.join(__dirname, 'data', 'employee.json')
-        path.join(__dirname, 'data', 'batch_1M', 'employee_100000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_200000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_300000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_400000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_500000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_600000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_700000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
-        path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json') 
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_100000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_200000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_300000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_400000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_500000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_600000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_700000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
+        // path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json') 
+        path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_20000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_30000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_40000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_50000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_60000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_70000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_80000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_90000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_100000.json') 
     ]
     const COLLECTION = 'employee'
 
