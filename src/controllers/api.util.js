@@ -1,5 +1,7 @@
 const path = require('path')
 
+const versioningutil = require('mongoose-versioned/source/util')
+
 const fs = require('fs')
 const NS_PER_SEC = 1e9
 const SEP = '\t'
@@ -9,8 +11,8 @@ const report_base_name = 'time_report_' + new Date().toISOString().replace('T', 
 const report_file_extension =  '.csv'
 const report_base = path.join(__dirname, '..', '..', 'output', report_base_name)
 
-exports.logTimerPerf = (tag, diff) => {
-    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`
+exports.logTimerPerf = (tag, diff, num=1) => {
+    const time = `${(diff[0] * NS_PER_SEC + diff[1])/1e6}`/num
 
     const report = report_base + "_" + tag + report_file_extension
     fs.appendFileSync(report, time + '\n')
@@ -50,3 +52,17 @@ exports.paramList2object = (text) => {
     }
     return obj
 }
+
+exports.updateDocumentFields = (document, update) => {
+    // modify the provided fields stkipping the protected ones
+    for (let key in update) {
+      if (update.hasOwnProperty(key)) {
+        if (versioningutil.isWritable(key)) 
+          document[key] = update[key]
+        else 
+          if (update[key] != document[key]) 
+            console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ))
+      }
+    }
+    return document
+  }

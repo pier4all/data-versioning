@@ -13,32 +13,32 @@ exports.create = async (req, res) => {
 
   let collection = undefined
 
-  try {
+  // Get the collection
+  collection = req.params.collection
+  const Model = require(`../models/${collection}`)
 
-    // Get the collection
-    collection = req.params.collection
-    const Model = require(`../models/${collection}`)
+    try {
 
-    // Create an Model
-    const document = new Model(req.body)
+      // Create an Model
+      const document = new Model(req.body)
 
-    // start timer
-    const start = process.hrtime()
+      // start timer
+      const start = process.hrtime()
 
-    // Save Customer in the database
-    await document.save()
+      // Save Customer in the database
+      await document.save()
 
-    // log timer (milliseconds)
-    const diff = process.hrtime(start)
-    util.logTimerPerf('INSERT', diff)
+      // log timer (milliseconds)
+      const diff = process.hrtime(start)
+      util.logTimerPerf('INSERT', diff)
 
-    res.status(201).send(document)
+      res.status(201).send(document)
 
-  } catch (error) {
-    const message = `Error creating a document in the collection ${collection}.`
-    processError(res, error, message)
+    } catch (error) {
+      const message = `Error creating a document in the collection ${collection}.`
+      processError(res, error, message)
+    }
   }
-}
 
 exports.update = async (req, res) => {
 
@@ -77,8 +77,8 @@ exports.update = async (req, res) => {
       return
     }
 
-    // modify the provided fields stkipping the protected ones
-    document = updateDocumentFields(document, req.body)
+    // modify the provided fields skipping the protected ones
+    document = util.updateDocumentFields(document, req.body)
 
     // start timer
     const start = process.hrtime()
@@ -139,9 +139,6 @@ exports.delete = async (req, res) => {
       return
     }
 
-    // set the deletion info
-    document[constants.DELETION] = req.body || {}
-
     // start timer
     const start = process.hrtime()
 
@@ -167,6 +164,37 @@ exports.delete = async (req, res) => {
     if (session) session.endSession()
     
     const message = `Error deleting document ${id} in the collection ${collection}.`
+    processError(res, error, message)
+  }
+}
+
+exports.deleteAll = async (req, res) => {
+  console.log(chalk.cyan("crud.controller.deleteAll: called delete collection"))
+
+  let collectionName
+
+  try {
+
+    // Get the collection
+    collectionName = req.params.collection + 's'
+    let versionedName = collectionName + ".versioning"
+
+    const collections = await mongoose.connection.db.collections()
+
+    let deleted = []
+    
+    for (let collection of collections) {
+      let dbCollectionName = collection.collectionName
+      if (dbCollectionName === collectionName || dbCollectionName === versionedName){
+        let res = await mongoose.connection.db.dropCollection(dbCollectionName)
+        console.log('delete', dbCollectionName, res)
+        deleted.push(dbCollectionName)
+      }
+    }
+     res.status(200).send({deleted})
+    
+  } catch(error) {
+    const message = `Error deleting collections ${collection} and ${versioned}.`
     processError(res, error, message)
   }
 }
@@ -307,16 +335,3 @@ function validateUpdateRequest(req) {
   return undefined
 }
 
-function updateDocumentFields(document, update) {
-  // modify the provided fields stkipping the protected ones
-  for (let key in update) {
-    if (update.hasOwnProperty(key)) {
-      if (versioningutil.isWritable(key)) 
-        document[key] = update[key]
-      else 
-        if (update[key] != document[key]) 
-          console.warn( chalk.red("WARNING: crud.controller.js: Attempting to update non writable attribute " + key ))
-    }
-  }
-  return document
-}

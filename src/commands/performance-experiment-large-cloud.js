@@ -39,15 +39,26 @@ const run = async () => {
     // Batch 1M
     var fileList = [
         // path.join(__dirname, 'data', 'employee.json'),
-        // path.join(__dirname, 'data', 'employee_1000.json')
-        path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json')
+        path.join(__dirname, 'data', 'employee_1000.json')
+        // path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json')
     ]
 
     const COLLECTION = 'employee'
 
-    const BATCH_SIZE = 1000
+    const BATCH_SIZE = 100
 
     let total_documents = []
+
+    //clean collections
+    try {
+        url = generateRequest(COLLECTION) + '/all'
+        var response = await axios.delete(url) 
+        console.log(chalk.green.bold(' * Deleted Collection:', COLLECTION))
+    } catch (error) {
+        console.error(chalk.redBright.bold(error.message));
+        return
+    }    
+
 
     for (var file of fileList) {
         //read the docs

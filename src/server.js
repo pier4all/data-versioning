@@ -1,6 +1,7 @@
 // entry point
 
 const db = require('./db/database')
+var chalk = require('chalk');
 
 // read credentials
 const result = require('dotenv').config({ path: 'config/.env' })
@@ -30,7 +31,7 @@ const start = async () => {
 
   } catch (err) {
 
-    fastify.log.error(err)
+    console.error(chalk.redBright(err))
     endConnection()
     process.exit(1)
 
