@@ -30,6 +30,7 @@ exports.create = async (req, res) => {
     // Save Customer in the database
 
     if (!document[constants.ID][constants.ID]) { document[constants.ID][constants.ID] = new mongoose.Types.ObjectId() }
+    if (!document[constants.ID][constants.VERSION]) { document[constants.ID][constants.VERSION] = 1 }
 
     await document.save()
 
