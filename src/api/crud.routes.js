@@ -30,6 +30,11 @@ module.exports = fastify => {
   fastify.patch("/crud/:collection/:id/:version", async (request, reply) => {
     return controller.update(request, reply)
   })
+  
+  // Delete a Collection
+  fastify.delete("/crud/:collection/all", async (request, reply) => {
+    return controller.deleteAll(request, reply)
+  })
 
   // Delete an Document
   fastify.delete("/crud/:collection/:id/:version", async (request, reply) => {

@@ -30,7 +30,7 @@ const start = async () => {
 
   } catch (err) {
 
-    fastify.log.error(err)
+    console.log(err)
     endConnection()
     process.exit(1)
 
