@@ -70,7 +70,6 @@ const run = async () => {
 
     const CHUNK_SIZE = BATCH_SIZE/500
 
-    let total_documents = []
 
     //clean collections
     try {
@@ -85,6 +84,9 @@ const run = async () => {
     let batch_num = 1
 
     for (var file of fileList) {
+
+        let total_documents = []
+        
         //read the docs
         console.log(chalk.cyan.bold(" * Reading file: " + file))
 
