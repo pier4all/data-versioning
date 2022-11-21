@@ -324,6 +324,36 @@ exports.findAll = async (req, res) => {
   }
 }
 
+exports.deleteAll = async (req, res) => {
+  console.log(chalk.cyan("crud.controller.deleteAll: called delete collection"))
+
+  let collectionName
+
+  try {
+
+    // Get the collection
+    collectionName = req.params.collection + 's'
+
+    const collections = await mongoose.connection.db.collections()
+
+    let deleted = []
+    
+    for (let collection of collections) {
+      let dbCollectionName = collection.collectionName
+      if (dbCollectionName === collectionName){
+        let res = await mongoose.connection.db.dropCollection(dbCollectionName)
+        console.log('delete', dbCollectionName, res)
+        deleted.push(dbCollectionName)
+      }
+    }
+     res.status(200).send({deleted})
+    
+  } catch(error) {
+    const message = `Error deleting collection ${collectionName}.`
+    processError(res, error, message)
+  }
+}
+
 function isValidDate(d) {
   return d instanceof Date && !isNaN(d)
 }
