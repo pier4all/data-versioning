@@ -39,15 +39,36 @@ const run = async () => {
     // Batch 1M
     var fileList = [
         // path.join(__dirname, 'data', 'employee.json')
-        path.join(__dirname, 'data', 'employee_1000.json')
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json')
+        // path.join(__dirname, 'data', 'employee_1000.json')
+        path.join(__dirname, 'data', 'batch_1M', 'employee_100000.json'),
+        path.join(__dirname, 'data', 'batch_1M', 'employee_200000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_300000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_400000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_500000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_600000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_700000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
+        path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json')
+            // // Batch 100K
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_20000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_30000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_40000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_50000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_60000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_70000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_80000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_90000.json'),  
+            // path.join(__dirname, 'data', 'batch_100K', 'employee_100000.json') 
+        
     ]
 
     const COLLECTION = 'employee'
 
-    const BATCH_SIZE = 100
+    const BATCH_SIZE = 100000
 
-    const CHUNK_SIZE = BATCH_SIZE/4
+    const CHUNK_SIZE = BATCH_SIZE/500
 
     let total_documents = []
 
@@ -60,6 +81,8 @@ const run = async () => {
         console.error(chalk.redBright.bold(error.message));
         return
     }    
+
+    let batch_num = 1
 
     for (var file of fileList) {
         //read the docs
@@ -82,192 +105,192 @@ const run = async () => {
             //console.log(`Doc from file: ${JSON.stringify(document)}`);
             total_documents.push(document)
         }
-    }
-    console.log(chalk.cyan.bold("\n =>  Read " + total_documents.length + " total documents\n"));
+    
+        console.log(chalk.cyan.bold("\n =>  Read " + total_documents.length + " total documents\n"));
 
 
-    // divide all docs in batches
-    let batches = []
-    for (let i = 0; i < total_documents.length; i += BATCH_SIZE) {
-        const chunk = total_documents.slice(i, i + BATCH_SIZE);
-        batches.push(chunk)
-    }
-
-    let batch_num = 1
-    for(let documents of batches) {
-
-        console.log(chalk.magenta.bold(" * Batch " + batch_num + "/"+ batches.length +" (" + documents.length +  " documents)"));
-
-        var inserted = []
-
-        // insert them
-        var collection = COLLECTION 
-        console.log("\t - Inserting at Collection '" + collection + "'");
-        var url = generateRequest(collection, undefined, undefined, endpoint='bulk')
-
-        //prepare the chunks
-        let chunks = []
-        for (let i = 0; i < documents.length; i += CHUNK_SIZE) {
-            const chunk = documents.slice(i, i + CHUNK_SIZE);
-            chunks.push(chunk)
+        // divide all docs in batches
+        let batches = []
+        for (let i = 0; i < total_documents.length; i += BATCH_SIZE) {
+            const chunk = total_documents.slice(i, i + BATCH_SIZE);
+            batches.push(chunk)
         }
 
-        let chunk_num = 1
-        for (let chunk of chunks){
-            chunk_num += 1
-            let docsToInsert = []
-            for(var document of chunk) {
-                try {
-                    // only for documents with dates or ids (fix for mongoose)
-                    Object.keys(document).forEach(function(key) {
-                        var value = document[key]
-                        var tags = ["$oid", "$date"]
-                        tags.forEach( tag => {
-                            if ((!!value) && (value.constructor === Object) 
-                                        && (value.hasOwnProperty(tag))) {
-                                document[key] = value[tag]
-                            }
-                        })
-                    }); 
-                    // ensure unique email
-                    if (document.email) {
-                        document.email = document.email.split('@')[0] + document.custno + '@' + document.email.split('@')[1]
-                    }
-                    docsToInsert.push(document)
+        for(let documents of batches) {
 
-                } catch (error) {
-                    console.error(chalk.redBright.bold(error.message));
-                    return
-                }           
+            console.log(chalk.magenta.bold(" * Batch " + batch_num + "/"+ batches.length +" (" + documents.length +  " documents)"));
+
+            var inserted = []
+
+            // insert them
+            var collection = COLLECTION 
+            console.log("\t - Inserting at Collection '" + collection + "'");
+            var url = generateRequest(collection, undefined, undefined, endpoint='bulk')
+
+            //prepare the chunks
+            let chunks = []
+            for (let i = 0; i < documents.length; i += CHUNK_SIZE) {
+                const chunk = documents.slice(i, i + CHUNK_SIZE);
+                chunks.push(chunk)
             }
-            // post the insert
-            var response = await axios.post(url, chunk);     
-            inserted.push(response.data) 
-            // break
-        }
-        
-        await wait()
 
-        console.log("\t - Updating at Collection '" + collection + "'");
-        chunk_num = 1
-        for (let chunk of inserted){
-            chunk_num += 1
-            try {
-                let updates = []
+            let chunk_num = 1
+            for (let chunk of chunks){
+                chunk_num += 1
+                let docsToInsert = []
                 for(var document of chunk) {
-                    let update = {_id: document._id, user: document.user}
-                    update.user.username = 'new.' + update.user.username
-                    updates.push(update)
+                    try {
+                        // only for documents with dates or ids (fix for mongoose)
+                        Object.keys(document).forEach(function(key) {
+                            var value = document[key]
+                            var tags = ["$oid", "$date"]
+                            tags.forEach( tag => {
+                                if ((!!value) && (value.constructor === Object) 
+                                            && (value.hasOwnProperty(tag))) {
+                                    document[key] = value[tag]
+                                }
+                            })
+                        }); 
+                        // ensure unique email
+                        if (document.email) {
+                            document.email = document.email.split('@')[0] + document.custno + '@' + document.email.split('@')[1]
+                        }
+                        docsToInsert.push(document)
+
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
+                    }           
                 }
-                url = generateRequest(collection, undefined, undefined, endpoint='bulk')
-                // console.log(JSON.stringify(chunk[0]))
-                var response = await axios.patch(url, updates);
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                console.error(chalk.red(error));
-                return
+                // post the insert
+                var response = await axios.post(url, chunk);     
+                inserted.push(response.data) 
+                // break
             }
-            // break
-            await wait(100)
-        }
+            
+            await wait()
 
-        await wait()
-
-        console.log("\t - Querying currently valid version at Collection '" + collection + "'");
-        for (let chunk of inserted){
-            for(var document of chunk) {
+            console.log("\t - Updating at Collection '" + collection + "'");
+            chunk_num = 1
+            for (let chunk of inserted){
+                chunk_num += 1
                 try {
-                    let id = document._id._id || document._id
-                    url = generateRequest(collection, id)
-                    var response = await axios.get(url);
+                    let updates = []
+                    for(var document of chunk) {
+                        let update = {_id: document._id, user: document.user}
+                        update.user.username = 'new.' + update.user.username
+                        updates.push(update)
+                    }
+                    url = generateRequest(collection, undefined, undefined, endpoint='bulk')
+                    // console.log(JSON.stringify(chunk[0]))
+                    var response = await axios.patch(url, updates);
                 } catch (error) {
                     console.error(chalk.redBright.bold(error.message));
+                    console.error(chalk.red(error));
                     return
                 }
+                // break
+                await wait(100)
             }
-        }
 
-        await wait()
+            await wait()
 
-        console.log("\t - Querying past valid version at Collection '" + collection + "'");
-        for (let chunk of inserted){
-            for(var document of chunk) {
-                try {
-                    if (document._validity) {
-                        var date = document._validity.start
+            console.log("\t - Querying currently valid version at Collection '" + collection + "'");
+            for (let chunk of inserted){
+                for(var document of chunk) {
+                    try {
                         let id = document._id._id || document._id
                         url = generateRequest(collection, id)
-                        var response = await axios.get(url, {params: {date}});
+                        var response = await axios.get(url);
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
                     }
-                } catch (error) {
-                    console.error(chalk.redBright.bold(error.message));
-                    return
                 }
             }
-        }
 
-        await wait()
+            await wait()
 
-        console.log("\t - Querying current version at Collection '" + collection + "'");
-        for (let chunk of inserted){
-            for(var document of chunk) {
+            console.log("\t - Querying past valid version at Collection '" + collection + "'");
+            for (let chunk of inserted){
+                for(var document of chunk) {
+                    try {
+                        if (document._validity) {
+                            var date = document._validity.start
+                            let id = document._id._id || document._id
+                            url = generateRequest(collection, id)
+                            var response = await axios.get(url, {params: {date}});
+                        }
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
+                    }
+                }
+            }
+
+            await wait()
+
+            console.log("\t - Querying current version at Collection '" + collection + "'");
+            for (let chunk of inserted){
+                for(var document of chunk) {
+                    try {
+                        let id = document._id._id || document._id
+                        url = generateRequest(collection, id)
+                        var response = await axios.get(url + "/2");
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
+                    }
+                }
+            }
+
+            await wait()
+
+            console.log("\t - Querying previous version at Collection '" + collection + "'");
+            for (let chunk of inserted){
+                for(var document of chunk) {
                 try {
-                    let id = document._id._id || document._id
-                    url = generateRequest(collection, id)
-                    var response = await axios.get(url + "/2");
-                } catch (error) {
-                    console.error(chalk.redBright.bold(error.message));
-                    return
+                        let id = document._id._id || document._id
+                        url = generateRequest(collection, id)
+                        var response = await axios.get(url + "/1");
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
+                    }
                 }
             }
-        }
 
-        await wait()
+            await wait()
 
-        console.log("\t - Querying previous version at Collection '" + collection + "'");
-        for (let chunk of inserted){
-            for(var document of chunk) {
-               try {
-                    let id = document._id._id || document._id
-                    url = generateRequest(collection, id)
-                    var response = await axios.get(url + "/1");
-                } catch (error) {
-                    console.error(chalk.redBright.bold(error.message));
-                    return
+            console.log("\t - Find by non indexed field at current collection '" + collection + "'");
+            for (let chunk of inserted){
+                for(var document of chunk) {           
+                    try {
+                        url = generateRequest(collection, 'find', undefined, endpoint='query')
+                        url += `?query="_validity.end": null,"pricePerWorkingUnit": {"$lte": ${document.pricePerWorkingUnit}}`
+                        var response = await axios.get(url);
+                    } catch (error) {
+                        console.error(chalk.redBright.bold(error.message));
+                        return
+                    }
                 }
             }
-        }
 
-        await wait()
+            await wait()
 
-        console.log("\t - Find by non indexed field at current collection '" + collection + "'");
-        for (let chunk of inserted){
-            for(var document of chunk) {           
+            console.log("\t - Deleting from Collection '" + collection + "'");
+            for (let chunk of inserted){
                 try {
-                    url = generateRequest(collection, 'find', undefined, endpoint='query')
-                    url += `?query="_validity.end": null,"pricePerWorkingUnit": {"$lte": ${document.pricePerWorkingUnit}}`
-                    var response = await axios.get(url);
+                    url = generateRequest(collection, undefined, undefined, endpoint='bulk') + '/delete'
+                    var response = await axios.post(url, chunk);
                 } catch (error) {
                     console.error(chalk.redBright.bold(error.message));
                     return
                 }
             }
-        }
-
-        await wait()
-
-        console.log("\t - Deleting from Collection '" + collection + "'");
-        for (let chunk of inserted){
-            try {
-                url = generateRequest(collection, undefined, undefined, endpoint='bulk') + '/delete'
-                var response = await axios.post(url, chunk);
-            } catch (error) {
-                console.error(chalk.redBright.bold(error.message));
-                return
-            }
-        }
-        batch_num += 1
-    } 
+            batch_num += 1
+        } 
+    }
 }
 
 run()
