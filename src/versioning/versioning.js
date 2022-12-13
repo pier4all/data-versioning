@@ -85,12 +85,32 @@ module.exports = function (schema, options) {
     versionedValidityIndex[validity_start] = 1
     versionedValidityIndex[validity_end] = 1
     schema.index(versionedValidityIndex)
+    // this.mongoose.getCollection("employees").createIndex(versionedValidityIndex, "_id._id_1__validity_1")
 
     // TODO: check if it worths to add (id, version), (id, validity) to mail collection
 
     // Turn off internal versioning, we don't need this since we version on everything
     schema.set("versionKey", false);
-   
+ 
+    schema.statics.ensureIndexes = async(model) => {
+        var versionedIdIndex = {}
+        versionedIdIndex[c.ID + '.' + c.ID] = 1
+        versionedIdIndex[c.ID + '.' + c.VERSION] = 1
+        model.collection.createIndex(versionedIdIndex)
+    
+        // add index to versioning (id, validity), 
+        const validity_end = c.VALIDITY + ".end"
+        const validity_start = c.VALIDITY + ".start"
+    
+        var versionedValidityIndex = {}
+        versionedValidityIndex[c.ID + '.' + c.ID] = 1
+        versionedValidityIndex[validity_start] = 1
+        versionedValidityIndex[validity_end] = 1
+    
+        model.collection.createIndex(versionedValidityIndex)
+    }
+    
+
     // Add special find by id and validity date that includes versioning
     schema.statics.findValidVersion = async (id, date, model) => {
 

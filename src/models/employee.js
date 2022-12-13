@@ -110,6 +110,7 @@ let employeeSchema = new Schema({
 })
 
 // TODO set indexes manually after adding option { autoIndex: false }
-employeeSchema.plugin(versioning, {collection: NAME + "s.versioning", mongoose})
-
-module.exports = mongoose.model(NAME, employeeSchema)
+employeeSchema.plugin(versioning, {collection: NAME + "s", mongoose})
+let employeeModel = mongoose.model(NAME, employeeSchema)
+employeeSchema.statics.ensureIndexes(employeeModel)
+module.exports = employeeModel
