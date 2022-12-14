@@ -49,20 +49,19 @@ const run = async () => {
         //  path.join(__dirname, 'data', 'batch_1M', 'employee_800000.json'),  
         //  path.join(__dirname, 'data', 'batch_1M', 'employee_900000.json'),  
         //  path.join(__dirname, 'data', 'batch_1M', 'employee_1000000.json') 
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_20000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_30000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_40000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_50000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_60000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_70000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_80000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_90000.json'),  
-        // path.join(__dirname, 'data', 'batch_100K', 'employee_100000.json') 
+        path.join(__dirname, 'data', 'batch_100K', 'employee_10000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_20000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_30000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_40000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_50000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_60000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_70000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_80000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_90000.json'),  
+        path.join(__dirname, 'data', 'batch_100K', 'employee_100000.json') 
     ]
 
     const COLLECTION = 'employee'
-
     
     for (var file of fileList) {
         //read the docs
